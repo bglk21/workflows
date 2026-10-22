@@ -1,6 +1,7 @@
 import { routeEdge, portPoint, nearestSide, SIDES } from './router.js';
 import * as api from './api.js';
 import { VERSION } from './version.js';
+import { renderPng } from './export-png.js';
 import {
   COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, normalizeDoc, sampleWorkflow, uid,
 } from './model.js';
@@ -1027,6 +1028,7 @@ async function handleToolbarAction(action) {
   if (action === 'fit') return fitView();
   if (action === 'import') return importInput.click();
   if (action === 'export') return exportDoc();
+  if (action === 'export-png') return exportImage();
 
   if (action === 'new-workflow') {
     const name = prompt('Name of the new workflow:', 'Untitled workflow');
@@ -1056,14 +1058,68 @@ async function handleToolbarAction(action) {
   }
 }
 
-function exportDoc() {
-  const blob = new Blob([JSON.stringify(state.doc, null, 2)], { type: 'application/json' });
+function download(blob, extension) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${state.doc.name.replace(/[^\w-]+/g, '_') || 'workflow'}.json`;
+  a.download = `${state.doc.name.replace(/[^\w-]+/g, '_') || 'workflow'}.${extension}`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function exportDoc() {
+  download(new Blob([JSON.stringify(state.doc, null, 2)], { type: 'application/json' }), 'json');
+}
+
+/** Area covered by blocks, text, connector routes and their labels. */
+function contentBounds() {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const add = (x, y, w = 0, h = 0) => {
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + w);
+    maxY = Math.max(maxY, y + h);
+  };
+
+  for (const n of state.doc.nodes) add(n.x, n.y, n.w, n.h);
+  const obstacles = blockRects();
+  for (const edge of state.doc.edges) {
+    const points = edgePoints(edge, obstacles);
+    if (!points) continue;
+    for (const p of points) add(p.x, p.y);
+    if (!edge.label) continue;
+    const mid = pointAtHalfLength(points);
+    const width = measureCtx.measureText(edge.label).width + 16;
+    add(mid.x - width / 2, mid.y - 11, width, 22);
+  }
+  if (minX === Infinity) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+async function exportImage() {
+  const bounds = contentBounds();
+  if (!bounds) {
+    alert('Add something to the workflow before exporting an image.');
+    return;
+  }
+
+  // Render once without selection highlights so they don't end up in the image.
+  const selection = state.selection;
+  state.selection = null;
+  render();
+  try {
+    const background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    download(await renderPng(viewportEl, bounds, { background }), 'png');
+  } catch (err) {
+    console.error(err);
+    alert('Could not export the image.');
+  } finally {
+    state.selection = selection;
+    scheduleRender();
+  }
 }
 
 importInput.addEventListener('change', async () => {

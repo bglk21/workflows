@@ -8,7 +8,7 @@ A simple, web-based workflow editor with a dark look.
 - Decisions: connections leaving a decision get labels (`Yes`, `No`, `Option 3`, …) that you can
   rename and recolor.
 - Free text: double-click empty space (or use **T Text**) and drag it anywhere.
-- Undo/redo, zoom/pan, export/import as JSON. Workflows auto-save to `data/`.
+- Undo/redo, zoom/pan, export/import as JSON, export as PNG image. Workflows auto-save to `data/`.
 
 ## Run
 
