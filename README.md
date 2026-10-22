@@ -18,7 +18,7 @@ Requires Node.js 18+. No dependencies to install.
 npm start
 ```
 
-Open http://localhost:3000. A "Getting started" workflow is created on first run.
+Open http://localhost:3000. An example workflow named "New workflow" is created on first run.
 
 Options (environment variables):
 
@@ -98,7 +98,7 @@ browser's localStorage (per browser, per device) instead of `data/`.
 | Connect blocks      | Drag from a dot on a block onto another block          |
 | Edit text / label   | Double-click, or select and press `Enter`              |
 | Color, label, shape | Select it and use the panel on the right               |
-| Resize block        | Drag the square in the selected block's corner         |
+| Resize block        | Drag the square in the selected block's corner; text scales along. Hold `Ctrl` to keep proportions |
 | Pan / zoom          | Drag empty space (or `Space`+drag) / mouse wheel       |
 | Delete              | `Delete` / `Backspace`                                 |
 | New / rename / export / import / delete workflow | `⋯` menu next to the workflow picker |

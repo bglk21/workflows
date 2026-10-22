@@ -1,6 +1,6 @@
 {
   "name": "workflows",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A simple web-based workflow editor with decisions, labels, colors, free text and auto-routed connectors.",
   "type": "module",
   "private": true,
