@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121621">
+  <meta name="description" content="Draw workflows with steps, decisions and connectors that route around blocks.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Workflows">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>Workflows</title>
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="stylesheet" href="css/styles.css">
@@ -15,16 +23,28 @@
     </div>
 
     <div class="group">
-      <select id="workflow-select" title="Open workflow" aria-label="Open workflow"></select>
+      <div class="menu-wrap title-wrap">
+        <button class="title-button" data-action="toggle-menu" title="Switch workflow (Ctrl+K)" aria-haspopup="dialog" aria-expanded="false">
+          <span id="doc-title" class="doc-title"></span><span class="caret" aria-hidden="true">▾</span>
+        </button>
+        <div id="workflow-menu" class="menu switcher" role="dialog" aria-label="Workflows" hidden>
+          <input id="switcher-search" class="switcher-search" type="search" placeholder="Switch workflow…   Ctrl+K" aria-label="Search workflows" autocomplete="off">
+          <div class="switcher-label">Recent</div>
+          <div id="switcher-list" class="switcher-list" role="listbox" aria-label="Workflows"></div>
+          <hr>
+          <button role="menuitem" data-action="new-workflow">＋ New workflow</button>
+        </div>
+      </div>
       <div class="menu-wrap">
-        <button class="icon" data-action="toggle-menu" title="Workflow actions" aria-label="Workflow actions" aria-haspopup="menu" aria-expanded="false">⋯</button>
-        <div id="workflow-menu" class="menu" role="menu" hidden>
-          <button role="menuitem" data-action="new-workflow">New workflow</button>
-          <button role="menuitem" data-action="rename-workflow">Rename</button>
+        <button class="icon" data-action="toggle-actions" title="Workflow options" aria-label="Workflow options" aria-haspopup="menu" aria-expanded="false">⋯</button>
+        <div id="actions-menu" class="menu" role="menu" aria-label="Workflow options" hidden>
+          <button role="menuitem" data-action="rename-workflow" class="ellipsis">✎ Rename</button>
+          <hr>
           <button role="menuitem" data-action="export">Export JSON</button>
           <button role="menuitem" data-action="export-png">Export PNG</button>
           <button role="menuitem" data-action="import">Import JSON</button>
           <hr>
+          <button role="menuitem" data-action="install" hidden>Install app</button>
           <button role="menuitem" data-action="delete-workflow" class="menu-danger">Delete</button>
         </div>
       </div>
@@ -33,9 +53,9 @@
 
     <div class="tools-row">
       <div class="group">
+        <button class="tool" data-add="terminal" title="Add a start or end" aria-label="Add a start or end"><span class="tool-icon" aria-hidden="true">⬭</span><span class="tool-label">Start / End</span></button>
         <button class="tool" data-add="process" title="Add a step" aria-label="Add a step"><span class="tool-icon" aria-hidden="true">▭</span><span class="tool-label">Step</span></button>
         <button class="tool" data-add="decision" title="Add a decision" aria-label="Add a decision"><span class="tool-icon" aria-hidden="true">◇</span><span class="tool-label">Decision</span></button>
-        <button class="tool" data-add="terminal" title="Add a start or end" aria-label="Add a start or end"><span class="tool-icon" aria-hidden="true">⬭</span><span class="tool-label">Start / End</span></button>
         <button class="tool" data-add="text" title="Add text" aria-label="Add text"><span class="tool-icon" aria-hidden="true">T</span><span class="tool-label">Text</span></button>
       </div>
 

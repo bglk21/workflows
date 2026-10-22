@@ -3,7 +3,8 @@ import * as api from './api.js';
 import { VERSION } from './version.js';
 import { renderPng } from './export-png.js';
 import {
-  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, labelFontSize, normalizeDoc, sampleWorkflow, uid,
+  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, labelFontSize, normalizeDoc, relativeTime,
+  sampleWorkflow, uid,
 } from './model.js';
 
 const GRID = 10;
@@ -29,12 +30,17 @@ const edgesEl = $('#edges');
 const nodesEl = $('#nodes');
 const overlayEl = $('#overlay');
 const inspectorEl = $('#inspector');
-const workflowSelect = $('#workflow-select');
 const saveStatusEl = $('#save-status');
 const zoomEl = $('#zoom-indicator');
 const importInput = $('#import-file');
 const workflowMenu = $('#workflow-menu');
+const actionsMenu = $('#actions-menu');
+const actionsButton = $('[data-action="toggle-actions"]');
 const menuButton = $('[data-action="toggle-menu"]');
+const docTitleEl = $('#doc-title');
+const switcherSearch = $('#switcher-search');
+const switcherList = $('#switcher-list');
+const renameItem = $('[data-action="rename-workflow"]');
 
 const measureCtx = document.createElement('canvas').getContext('2d');
 measureCtx.font = '600 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
@@ -147,7 +153,9 @@ async function saveNow() {
   saveTimer = null;
   setSaveStatus('Saving…');
   try {
-    await api.saveWorkflow(state.doc);
+    const { updatedAt } = await api.saveWorkflow(state.doc);
+    const entry = state.workflows.find((w) => w.id === state.doc.id);
+    if (entry) entry.updatedAt = updatedAt;
     setSaveStatus(savedLabel(), 'ok');
   } catch (err) {
     console.error(err);
@@ -429,10 +437,16 @@ function helpInspector() {
     <ul class="help keys">
       <li><kbd>Del</kbd> delete selection</li>
       <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redo</li>
+      <li><kbd>Ctrl</kbd>+<kbd>K</kbd> switch workflow</li>
       <li><kbd>Ctrl</kbd>+<kbd>D</kbd> duplicate block</li>
       <li><kbd>Enter</kbd> edit selection · <kbd>Esc</kbd> deselect</li>
       <li><kbd>Space</kbd>+drag pan</li>
       <li>Touch: pinch to zoom, drag empty space to pan, tap a block to show its dots</li>
+    </ul>
+    <h3>Install as an app</h3>
+    <ul class="help">
+      <li><b>Android / Chrome:</b> ⋯ → Install app (or the browser menu → Install app).</li>
+      <li><b>iPhone / iPad:</b> open in Safari, tap Share → Add to Home Screen.</li>
     </ul>
     <p class="hint">Reopen this any time with the <b>?</b> button.</p>`;
 }
@@ -1009,6 +1023,12 @@ window.addEventListener('keydown', (e) => {
     redo();
     return;
   }
+  if (mod && key === 'k') {
+    e.preventDefault();
+    setActionsOpen(false);
+    setMenuOpen(workflowMenu.hidden);
+    return;
+  }
   if (mod && key === 'd') {
     e.preventDefault();
     duplicateSelection();
@@ -1020,7 +1040,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.key === 'Escape') {
-    setMenuOpen(false);
+    closeMenus();
     select(null);
     return;
   }
@@ -1044,11 +1064,71 @@ window.addEventListener('keyup', (e) => {
 
 // ---------- workflows ----------
 
-function renderWorkflowSelect() {
-  workflowSelect.innerHTML = state.workflows
-    .map((w) => `<option value="${escapeHtml(w.id)}"${w.id === state.doc.id ? ' selected' : ''}>${escapeHtml(w.name)}</option>`)
-    .join('');
+// ---------- workflow switcher (title menu) ----------
+
+let switcherIndex = 0;
+
+function switcherMatches() {
+  const query = switcherSearch.value.trim().toLowerCase();
+  const sorted = [...state.workflows].sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
+  if (!query) return sorted;
+  return sorted.filter((w) => w.name.toLowerCase().includes(query));
 }
+
+function renderSwitcherList() {
+  const matches = switcherMatches();
+  switcherIndex = Math.min(switcherIndex, Math.max(0, matches.length - 1));
+  if (!matches.length) {
+    switcherList.innerHTML = '<div class="switcher-empty">No workflows match</div>';
+    return;
+  }
+  switcherList.innerHTML = matches.map((w, i) => {
+    const current = w.id === state.doc.id;
+    const cls = `switcher-item${current ? ' current' : ''}${i === switcherIndex ? ' active' : ''}`;
+    const meta = current ? '✓ open' : relativeTime(w.updatedAt);
+    return `<button class="${cls}" role="option" aria-selected="${current}" data-open="${escapeHtml(w.id)}">
+      <b>${escapeHtml(w.name)}</b><span>${escapeHtml(meta)}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderWorkflowTitle() {
+  docTitleEl.textContent = state.doc.name;
+  renameItem.textContent = `✎ Rename “${state.doc.name}”`;
+  if (!workflowMenu.hidden) renderSwitcherList();
+}
+
+function openFromSwitcher(id) {
+  setMenuOpen(false);
+  if (id === state.doc.id) return;
+  switchWorkflow(id);
+}
+
+switcherSearch.addEventListener('input', () => {
+  switcherIndex = 0;
+  renderSwitcherList();
+});
+
+switcherSearch.addEventListener('keydown', (e) => {
+  const matches = switcherMatches();
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const step = e.key === 'ArrowDown' ? 1 : -1;
+    switcherIndex = (switcherIndex + step + matches.length) % Math.max(1, matches.length);
+    renderSwitcherList();
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (matches[switcherIndex]) openFromSwitcher(matches[switcherIndex].id);
+    return;
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    setMenuOpen(false);
+    menuButton.focus();
+  }
+});
 
 function rememberLastOpened(id) {
   try {
@@ -1088,7 +1168,7 @@ function openDoc(doc) {
   state.redo = [];
   state.selection = null;
   rememberLastOpened(state.doc.id);
-  renderWorkflowSelect();
+  renderWorkflowTitle();
   renderInspector();
   fitView();
 }
@@ -1101,7 +1181,7 @@ async function flushSave() {
 async function refreshList() {
   state.workflows = await api.listWorkflows();
   if (!state.workflows.some((w) => w.id === state.doc.id)) state.workflows.unshift({ id: state.doc.id, name: state.doc.name });
-  renderWorkflowSelect();
+  renderWorkflowTitle();
 }
 
 async function createWorkflow(doc) {
@@ -1128,6 +1208,7 @@ async function handleToolbarAction(action) {
   if (action === 'import') return importInput.click();
   if (action === 'export') return exportDoc();
   if (action === 'export-png') return exportImage();
+  if (action === 'install') return installApp();
 
   if (action === 'new-workflow') {
     const name = prompt('Name of the new workflow:', 'Untitled workflow');
@@ -1234,19 +1315,49 @@ importInput.addEventListener('change', async () => {
   }
 });
 
+/** The ⋯ menu: options for the open workflow (rename, export, import, install, delete). */
+function setActionsOpen(open) {
+  actionsMenu.hidden = !open;
+  actionsButton.setAttribute('aria-expanded', String(open));
+}
+
+function closeMenus() {
+  setMenuOpen(false);
+  setActionsOpen(false);
+}
+
+/** The title menu: switch between workflows or start a new one. */
 function setMenuOpen(open) {
+  if (workflowMenu.hidden === !open) return;
   workflowMenu.hidden = !open;
   menuButton.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  switcherSearch.value = '';
+  switcherIndex = 0;
+  renderSwitcherList();
+  // On touch screens focusing would pop up the keyboard over the list.
+  if (!COARSE_POINTER) switcherSearch.focus();
+  refreshList().catch((err) => console.error(err));
 }
 
 document.querySelector('.topbar').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
   if (btn.dataset.action === 'toggle-menu') {
+    setActionsOpen(false);
     setMenuOpen(workflowMenu.hidden);
     return;
   }
-  setMenuOpen(false);
+  if (btn.dataset.action === 'toggle-actions') {
+    setMenuOpen(false);
+    setActionsOpen(actionsMenu.hidden);
+    return;
+  }
+  if (btn.dataset.open) {
+    openFromSwitcher(btn.dataset.open);
+    return;
+  }
+  closeMenus();
   if (btn.dataset.add) {
     addNode(btn.dataset.add);
     return;
@@ -1259,20 +1370,52 @@ document.querySelector('.topbar').addEventListener('click', (e) => {
 });
 
 document.addEventListener('pointerdown', (e) => {
-  if (workflowMenu.hidden || e.target.closest('.menu-wrap')) return;
-  setMenuOpen(false);
+  if (e.target.closest('.menu-wrap')) return;
+  closeMenus();
 });
 
-workflowSelect.addEventListener('change', () => switchWorkflow(workflowSelect.value));
 window.addEventListener('resize', scheduleRender);
 window.addEventListener('beforeunload', () => {
   if (!saveTimer) return;
   api.saveOnUnload(state.doc);
 });
 
+// ---------- install as an app (PWA) ----------
+
+const installItem = $('[data-action="install"]');
+let installPrompt = null;
+
+// Chromium browsers (Android, desktop) offer an install prompt we can trigger
+// from the menu. iOS has no such API: users pick "Add to Home Screen".
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  installItem.hidden = false;
+});
+
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  installItem.hidden = true;
+});
+
+async function installApp() {
+  if (!installPrompt) return;
+  const prompt = installPrompt;
+  installPrompt = null;
+  installItem.hidden = true;
+  await prompt.prompt();
+}
+
+function registerServiceWorker() {
+  // Needs a secure context (https or localhost); elsewhere the app still works, just not installable.
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js').catch((err) => console.warn('Service worker not registered:', err));
+}
+
 // ---------- boot ----------
 
 async function boot() {
+  registerServiceWorker();
   $('#version').textContent = `v${VERSION}`;
   renderInspector();
   let list;

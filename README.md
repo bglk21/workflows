@@ -2,6 +2,24 @@
 
 A simple, web-based workflow editor with a dark look.
 
+> ### ▶ Try the demo: **https://bglk21.github.io/workflows/**
+>
+> The demo runs entirely in your browser (hosted on GitHub Pages), with nothing to install. It is a
+> **demo**: your workflows are saved only in that browser on that device (localStorage). They are not
+> uploaded, shared or backed up, and clearing the site's data deletes them. Use **⋯ → Export JSON**
+> to keep a copy.
+>
+> To keep workflows on your own machine or server, run it with [Node](#run) or [Docker](#docker).
+
+| How to run           | Where workflows are saved           | Best for                    |
+| -------------------- | ----------------------------------- | --------------------------- |
+| [Demo in the browser](https://bglk21.github.io/workflows/) | Your browser only (localStorage) | Trying it out |
+| [Node](#run) (`npm start`) | `data/` folder on that machine | Local use, development |
+| [Docker](#docker)    | The `/data` volume                  | Self-hosting                |
+| [Install as an app](#install-as-an-app-pwa) | Same as where you installed it from | Phone or desktop app feel |
+
+## Features
+
 - Blocks: **Step**, **Decision** (diamond) and **Start / End**, each with its own text and color.
 - Connections: drag from a dot on a block's edge to another block. Lines are routed
   orthogonally and go around other blocks instead of through them.
@@ -9,7 +27,9 @@ A simple, web-based workflow editor with a dark look.
   rename and recolor.
 - Free text: double-click empty space (or use **T Text**) and drag it anywhere.
 - Undo/redo, zoom/pan (pinch on touch screens), export/import as JSON, export as PNG image.
-- Works on phones: two-row toolbar and a bottom sheet for editing. Workflows auto-save to `data/`.
+- Works on phones: two-row toolbar and a bottom sheet for editing.
+- Installable as an app (PWA) on Android, iPhone and desktop; opens offline once installed.
+- Auto-saves as you work.
 
 ## Run
 
@@ -51,6 +71,22 @@ Workflows uses [semantic versioning](https://semver.org) (`MAJOR.MINOR.PATCH`). 
 
 Merges that don't change the version only update the `latest` Docker tag.
 
+## Install as an app (PWA)
+
+Workflows can be installed to the home screen and opens in its own window, also offline.
+Installing needs https (e.g. the GitHub Pages site) or `localhost`.
+
+- **Android / Chrome / Edge:** `⋯` → **Install app**, or the browser menu → *Install app*.
+- **iPhone / iPad:** open the site in Safari → Share → **Add to Home Screen**.
+
+The service worker (`public/sw.js`) loads everything from the network first and only falls back to
+its cache when offline, so new releases show up on the next launch. The API is never cached: when
+the Node server or Docker container is unreachable, the app uses the browser's own storage instead,
+and those changes are not synced back to the server.
+
+Icons in `public/icons/` are rendered from `public/icon.svg`; the maskable one keeps the artwork
+inside Android's round safe zone.
+
 ## Docker
 
 A ready-made image is published to GitHub Container Registry:
@@ -82,10 +118,11 @@ build and smoke-test it.
 
 To build locally instead of pulling, replace `image:` with `build: .` in `docker-compose.yml`.
 
-## GitHub Pages
+## GitHub Pages (the demo)
 
-The app also runs as a static site. Without the Node server it saves workflows in the
-browser's localStorage (per browser, per device) instead of `data/`.
+The [demo](https://bglk21.github.io/workflows/) is the same app served as a static site. Without
+the Node server it saves workflows in the browser's localStorage (per browser, per device) instead
+of `data/`.
 
 `.github/workflows/pages.yml` runs the tests and deploys `public/` on every push to `main`
 (or manually via **Actions → Deploy to GitHub Pages → Run workflow**). One-time setup:
@@ -102,7 +139,8 @@ browser's localStorage (per browser, per device) instead of `data/`.
 | Resize block        | Drag the square in the selected block's corner; text scales along. Hold `Ctrl` to keep proportions |
 | Pan / zoom          | Drag empty space (or `Space`+drag) / mouse wheel; on touch screens drag with one finger / pinch |
 | Delete              | `Delete` / `Backspace`                                 |
-| New / rename / export / import / delete workflow | `⋯` menu next to the workflow picker |
+| Switch or create a workflow | Click the workflow name at the top (or `Ctrl+K`), type to search, `↑`/`↓` + `Enter`; **＋ New workflow** at the bottom |
+| Rename / export (JSON, PNG) / import / install / delete | `⋯` menu next to the workflow name |
 | Show help again     | `?` button in the top-right corner                     |
 | Undo / redo         | `Ctrl+Z` / `Ctrl+Shift+Z`                               |
 | Duplicate           | `Ctrl+D`                                               |

@@ -9,6 +9,10 @@ export default [
     languageOptions: { globals: globals.browser },
   },
   {
+    files: ['public/sw.js'],
+    languageOptions: { globals: globals.serviceworker },
+  },
+  {
     files: ['server.js', 'scripts/**/*.js', 'test/**/*.js', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },
