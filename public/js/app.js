@@ -1,5 +1,6 @@
 import { routeEdge, portPoint, nearestSide, SIDES } from './router.js';
 import * as api from './api.js';
+import { VERSION } from './version.js';
 import {
   COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, normalizeDoc, sampleWorkflow, uid,
 } from './model.js';
@@ -10,6 +11,7 @@ const MAX_ZOOM = 3;
 const HISTORY_LIMIT = 100;
 const SAVE_DELAY_MS = 400;
 const LAST_OPENED_KEY = 'workflows:last-opened';
+const HELP_DISMISSED_KEY = 'workflows:help-dismissed';
 
 const $ = (sel) => document.querySelector(sel);
 const stage = $('#stage');
@@ -23,6 +25,8 @@ const workflowSelect = $('#workflow-select');
 const saveStatusEl = $('#save-status');
 const zoomEl = $('#zoom-indicator');
 const importInput = $('#import-file');
+const workflowMenu = $('#workflow-menu');
+const menuButton = $('[data-action="toggle-menu"]');
 
 const measureCtx = document.createElement('canvas').getContext('2d');
 measureCtx.font = '600 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
@@ -32,6 +36,7 @@ const state = {
   workflows: [],
   view: { x: 0, y: 0, k: 1 },
   selection: null, // { kind: 'node' | 'edge', id }
+  helpOpen: !readFlag(HELP_DISMISSED_KEY),
   undo: [],
   redo: [],
 };
@@ -397,9 +402,11 @@ function edgeInspector(edge) {
     <button class="danger" data-action="delete-selection">Delete connection</button>`;
 }
 
-function emptyInspector() {
-  return `<h2>${escapeHtml(state.doc.name)}</h2>
-    <p class="hint">${state.doc.nodes.filter(isBlock).length} blocks · ${state.doc.edges.length} connections</p>
+function helpInspector() {
+  return `<div class="inspector-head">
+      <h2>Getting started</h2>
+      <button class="icon small" data-action="close-help" title="Hide help" aria-label="Hide help">✕</button>
+    </div>
     <h3>How to</h3>
     <ul class="help">
       <li>Add blocks from the toolbar.</li>
@@ -415,10 +422,12 @@ function emptyInspector() {
       <li><kbd>Ctrl</kbd>+<kbd>D</kbd> duplicate block</li>
       <li><kbd>Enter</kbd> edit selection · <kbd>Esc</kbd> deselect</li>
       <li><kbd>Space</kbd>+drag pan</li>
-    </ul>`;
+    </ul>
+    <p class="hint">Reopen this any time with the <b>?</b> button.</p>`;
 }
 
 function renderInspector() {
+  inspectorEl.hidden = false;
   const node = selectedNode();
   if (node) {
     inspectorEl.innerHTML = nodeInspector(node);
@@ -429,7 +438,22 @@ function renderInspector() {
     inspectorEl.innerHTML = edgeInspector(edge);
     return;
   }
-  inspectorEl.innerHTML = emptyInspector();
+  if (state.helpOpen) {
+    inspectorEl.innerHTML = helpInspector();
+    return;
+  }
+  // Nothing to show: hide the panel so the canvas uses the full width.
+  inspectorEl.hidden = true;
+  inspectorEl.innerHTML = '';
+  scheduleRender();
+}
+
+function setHelpOpen(open) {
+  state.helpOpen = open;
+  writeFlag(HELP_DISMISSED_KEY, !open);
+  if (open) state.selection = null;
+  scheduleRender();
+  renderInspector();
 }
 
 function select(kind, id) {
@@ -511,6 +535,10 @@ inspectorEl.addEventListener('click', (e) => {
   }
   if (btn.dataset.action === 'reverse-edge') {
     reverseEdge(selectedEdge());
+    return;
+  }
+  if (btn.dataset.action === 'close-help') {
+    setHelpOpen(false);
     return;
   }
   if (btn.dataset.action === 'delete-selection') deleteSelection();
@@ -892,6 +920,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.key === 'Escape') {
+    setMenuOpen(false);
     select(null);
     return;
   }
@@ -934,6 +963,22 @@ function readLastOpened() {
     return localStorage.getItem(LAST_OPENED_KEY);
   } catch {
     return null;
+  }
+}
+
+function readFlag(key) {
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeFlag(key, value) {
+  try {
+    localStorage.setItem(key, value ? '1' : '0');
+  } catch {
+    // Storage may be unavailable (private mode); not essential.
   }
 }
 
@@ -1034,14 +1079,33 @@ importInput.addEventListener('change', async () => {
   }
 });
 
+function setMenuOpen(open) {
+  workflowMenu.hidden = !open;
+  menuButton.setAttribute('aria-expanded', String(open));
+}
+
 document.querySelector('.topbar').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
+  if (btn.dataset.action === 'toggle-menu') {
+    setMenuOpen(workflowMenu.hidden);
+    return;
+  }
+  setMenuOpen(false);
   if (btn.dataset.add) {
     addNode(btn.dataset.add);
     return;
   }
+  if (btn.dataset.action === 'help') {
+    setHelpOpen(!state.helpOpen || Boolean(state.selection));
+    return;
+  }
   if (btn.dataset.action) handleToolbarAction(btn.dataset.action);
+});
+
+document.addEventListener('pointerdown', (e) => {
+  if (workflowMenu.hidden || e.target.closest('.menu-wrap')) return;
+  setMenuOpen(false);
 });
 
 workflowSelect.addEventListener('change', () => switchWorkflow(workflowSelect.value));
@@ -1054,6 +1118,7 @@ window.addEventListener('beforeunload', () => {
 // ---------- boot ----------
 
 async function boot() {
+  $('#version').textContent = `v${VERSION}`;
   renderInspector();
   let list;
   try {

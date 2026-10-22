@@ -9,3 +9,9 @@ test('package.json version is valid semver', async () => {
   const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
   assert.match(pkg.version, SEMVER);
 });
+
+test('public/js/version.js matches package.json', async () => {
+  const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  const { VERSION } = await import('../public/js/version.js');
+  assert.equal(VERSION, pkg.version, 'Run `node scripts/sync-version.js` (or bump with `npm version`)');
+});

@@ -40,7 +40,8 @@ Workflows uses [semantic versioning](https://semver.org) (`MAJOR.MINOR.PATCH`). 
 | Breaking change (e.g. saved file format) | `MAJOR` | `npm version major --no-git-tag-version`   |
 | Pre-release                             | e.g. `1.2.0-beta.1` | `npm version prerelease --preid beta --no-git-tag-version` |
 
-To release, include the version bump in a pull request. When it is merged into `main`,
+`npm version` also updates `public/js/version.js`, which shows the version in the app's top bar
+(a test fails if the two drift apart). To release, include the version bump in a pull request. When it is merged into `main`,
 `.github/workflows/release.yml`:
 
 1. creates the git tag `vX.Y.Z` and a GitHub Release with generated release notes
@@ -101,6 +102,8 @@ browser's localStorage (per browser, per device) instead of `data/`.
 | Resize block        | Drag the square in the selected block's corner         |
 | Pan / zoom          | Drag empty space (or `Space`+drag) / mouse wheel       |
 | Delete              | `Delete` / `Backspace`                                 |
+| New / rename / export / import / delete workflow | `⋯` menu next to the workflow picker |
+| Show help again     | `?` button in the top-right corner                     |
 | Undo / redo         | `Ctrl+Z` / `Ctrl+Shift+Z`                               |
 | Duplicate           | `Ctrl+D`                                               |
 
