@@ -9,7 +9,8 @@ A simple, web-based workflow editor with a dark look.
   rename and recolor.
 - Free text: double-click empty space (or use **T Text**) and drag it anywhere.
 - Undo/redo, zoom/pan (pinch on touch screens), export/import as JSON, export as PNG image.
-- Works on phones: two-row toolbar and a bottom sheet for editing. Workflows auto-save to `data/`.
+- Works on phones: two-row toolbar and a bottom sheet for editing.
+- Installable as an app (PWA) on Android, iPhone and desktop; opens offline once installed. Workflows auto-save to `data/`.
 
 ## Run
 
@@ -50,6 +51,22 @@ Workflows uses [semantic versioning](https://semver.org) (`MAJOR.MINOR.PATCH`). 
 2. publishes Docker images tagged `X.Y.Z`, `X.Y` and `X` (`X` is skipped for `0.x` versions).
 
 Merges that don't change the version only update the `latest` Docker tag.
+
+## Install as an app (PWA)
+
+Workflows can be installed to the home screen and opens in its own window, also offline.
+Installing needs https (e.g. the GitHub Pages site) or `localhost`.
+
+- **Android / Chrome / Edge:** `⋯` → **Install app**, or the browser menu → *Install app*.
+- **iPhone / iPad:** open the site in Safari → Share → **Add to Home Screen**.
+
+The service worker (`public/sw.js`) loads everything from the network first and only falls back to
+its cache when offline, so new releases show up on the next launch. The API is never cached: when
+the Node server or Docker container is unreachable, the app uses the browser's own storage instead,
+and those changes are not synced back to the server.
+
+Icons in `public/icons/` are rendered from `public/icon.svg`; the maskable one keeps the artwork
+inside Android's round safe zone.
 
 ## Docker
 

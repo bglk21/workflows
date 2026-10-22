@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121621">
+  <meta name="description" content="Draw workflows with steps, decisions and connectors that route around blocks.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Workflows">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>Workflows</title>
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="stylesheet" href="css/styles.css">
@@ -24,6 +32,7 @@
           <button role="menuitem" data-action="export">Export JSON</button>
           <button role="menuitem" data-action="export-png">Export PNG</button>
           <button role="menuitem" data-action="import">Import JSON</button>
+          <button role="menuitem" data-action="install" hidden>Install app</button>
           <hr>
           <button role="menuitem" data-action="delete-workflow" class="menu-danger">Delete</button>
         </div>

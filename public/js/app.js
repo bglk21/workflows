@@ -434,6 +434,11 @@ function helpInspector() {
       <li><kbd>Space</kbd>+drag pan</li>
       <li>Touch: pinch to zoom, drag empty space to pan, tap a block to show its dots</li>
     </ul>
+    <h3>Install as an app</h3>
+    <ul class="help">
+      <li><b>Android / Chrome:</b> ⋯ → Install app (or the browser menu → Install app).</li>
+      <li><b>iPhone / iPad:</b> open in Safari, tap Share → Add to Home Screen.</li>
+    </ul>
     <p class="hint">Reopen this any time with the <b>?</b> button.</p>`;
 }
 
@@ -1128,6 +1133,7 @@ async function handleToolbarAction(action) {
   if (action === 'import') return importInput.click();
   if (action === 'export') return exportDoc();
   if (action === 'export-png') return exportImage();
+  if (action === 'install') return installApp();
 
   if (action === 'new-workflow') {
     const name = prompt('Name of the new workflow:', 'Untitled workflow');
@@ -1270,9 +1276,42 @@ window.addEventListener('beforeunload', () => {
   api.saveOnUnload(state.doc);
 });
 
+// ---------- install as an app (PWA) ----------
+
+const installItem = $('[data-action="install"]');
+let installPrompt = null;
+
+// Chromium browsers (Android, desktop) offer an install prompt we can trigger
+// from the menu. iOS has no such API: users pick "Add to Home Screen".
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  installItem.hidden = false;
+});
+
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  installItem.hidden = true;
+});
+
+async function installApp() {
+  if (!installPrompt) return;
+  const prompt = installPrompt;
+  installPrompt = null;
+  installItem.hidden = true;
+  await prompt.prompt();
+}
+
+function registerServiceWorker() {
+  // Needs a secure context (https or localhost); elsewhere the app still works, just not installable.
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js').catch((err) => console.warn('Service worker not registered:', err));
+}
+
 // ---------- boot ----------
 
 async function boot() {
+  registerServiceWorker();
   $('#version').textContent = `v${VERSION}`;
   renderInspector();
   let list;

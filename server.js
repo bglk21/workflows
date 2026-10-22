@@ -16,6 +16,7 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.ico': 'image/x-icon',
+  '.webmanifest': 'application/manifest+json',
 };
 
 function send(res, status, body, type = 'application/json; charset=utf-8') {

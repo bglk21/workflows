@@ -47,3 +47,9 @@ test('serves the app and blocks path traversal', async () => {
   assert.equal((await fetch(`${base}/`)).status, 200);
   assert.equal((await fetch(`${base}/..%2fserver.js`)).status, 403);
 });
+
+test('serves the web app manifest with its MIME type', async () => {
+  const res = await fetch(`${base}/manifest.webmanifest`);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('content-type'), 'application/manifest+json');
+});
