@@ -291,6 +291,10 @@ button { touch-action: manipulation; }
 .branch i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
 .hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.inspector a { color: var(--accent); text-decoration: none; }
+.inspector a:hover { text-decoration: underline; }
+.about { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border); }
+.about > a { font-weight: 600; }
 .help { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.6; }
 .help b { color: var(--text); }
 .help.keys { list-style: none; padding-left: 0; }
