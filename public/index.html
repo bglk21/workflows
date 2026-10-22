@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workflows</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span>Workflows</span>
+    </div>
+
+    <div class="group">
+      <select id="workflow-select" title="Open workflow"></select>
+      <button data-action="new-workflow" title="New workflow">New</button>
+      <button data-action="rename-workflow" title="Rename workflow">Rename</button>
+      <button data-action="delete-workflow" class="ghost-danger" title="Delete workflow">Delete</button>
+    </div>
+
+    <div class="group">
+      <button data-add="process" title="Add step">▭ Step</button>
+      <button data-add="decision" title="Add decision">◇ Decision</button>
+      <button data-add="terminal" title="Add start / end">⬭ Start/End</button>
+      <button data-add="text" title="Add text">T Text</button>
+    </div>
+
+    <div class="group">
+      <button data-action="undo" title="Undo (Ctrl+Z)">↶</button>
+      <button data-action="redo" title="Redo (Ctrl+Shift+Z)">↷</button>
+      <button data-action="fit" title="Fit to screen">Fit</button>
+      <button data-action="export" title="Export JSON">Export</button>
+      <button data-action="import" title="Import JSON">Import</button>
+      <input id="import-file" type="file" accept="application/json,.json" hidden>
+    </div>
+
+    <div id="save-status" class="save-status"></div>
+  </header>
+
+  <main class="workspace">
+    <div id="stage" class="stage">
+      <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+        <g id="viewport">
+          <g id="edges"></g>
+          <g id="nodes"></g>
+          <g id="overlay"></g>
+        </g>
+      </svg>
+      <div id="zoom-indicator" class="zoom-indicator">100%</div>
+    </div>
+    <aside id="inspector" class="inspector"></aside>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
