@@ -1,0 +1,57 @@
+name: Release
+
+# Releases are driven by the "version" field in package.json: bump it in a pull
+# request (npm version minor --no-git-tag-version), and when that reaches main
+# this workflow tags vX.Y.Z, creates a GitHub Release and publishes Docker tags.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      created: ${{ steps.tag.outputs.created }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "v$VERSION already released; nothing to do."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          prerelease=""
+          if [[ "$VERSION" == *-* ]]; then prerelease="--prerelease"; fi
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes $prerelease
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+  # Tags created with GITHUB_TOKEN do not trigger other workflows, so the
+  # Docker workflow is called directly to publish the version tags.
+  docker:
+    needs: release
+    if: needs.release.outputs.created == 'true'
+    uses: ./.github/workflows/docker.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
+    permissions:
+      contents: read
+      packages: write

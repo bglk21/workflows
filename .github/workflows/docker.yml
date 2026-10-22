@@ -9,13 +9,22 @@ on:
     # Weekly rebuild so the image picks up base-image security patches.
     - cron: '17 4 * * 1'
   workflow_dispatch:
+  # Called by release.yml to publish version tags for a new release.
+  workflow_call:
+    inputs:
+      version:
+        description: Release version without the leading v, e.g. 1.2.3
+        type: string
+        required: true
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: docker-${{ github.ref }}
+  # github.workflow differs when called from release.yml, so a release build
+  # never cancels (or is cancelled by) the regular build of the same commit.
+  group: docker-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -47,6 +56,9 @@ jobs:
             type=sha,format=short
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}},value=v${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=v${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}},value=v${{ inputs.version }},enable=${{ inputs.version != '' && !startsWith(inputs.version, '0.') }}
 
       # Pull requests only build (no push) to prove the image still builds.
       - uses: docker/build-push-action@v6
