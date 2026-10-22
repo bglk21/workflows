@@ -103,7 +103,7 @@ export function sampleWorkflow() {
   const e = (from, fromSide, to, toSide, label = '') => ({ ...createEdge({ node: from, side: fromSide }, { node: to, side: toSide }, label) });
   return {
     id: uid(),
-    name: 'Getting started',
+    name: 'New workflow',
     nodes: [
       n('note', 'text', 40, 40, 'Welcome to Workflows\nDrag blocks around · drag from the dots to connect · double-click to edit', '#94a3b8', { w: 520, h: 44, fontSize: 15 }),
       n('start', 'terminal', 40, 230, 'Request received', '#34d399', { w: 160 }),

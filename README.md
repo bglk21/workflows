@@ -18,7 +18,7 @@ Requires Node.js 18+. No dependencies to install.
 npm start
 ```
 
-Open http://localhost:3000. A "Getting started" workflow is created on first run.
+Open http://localhost:3000. An example workflow named "New workflow" is created on first run.
 
 Options (environment variables):
 

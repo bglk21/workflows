@@ -68,6 +68,15 @@ button.danger:hover { background: rgba(248, 113, 113, 0.16); }
 .save-status { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
 button.icon { width: 34px; height: 34px; padding: 0; display: inline-grid; place-items: center; font-size: 16px; line-height: 1; }
+button.tool { height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 8px; font-weight: 550; }
+.tool-icon { font-size: 18px; line-height: 1; color: var(--accent); }
+
+/* Narrow screens: shape buttons fall back to icons only (title still explains them). */
+@media (max-width: 1180px) {
+  button.tool { width: 38px; padding: 0; justify-content: center; }
+  .tool-label { display: none; }
+}
+
 button.icon.small { width: 26px; height: 26px; font-size: 12px; }
 
 .menu-wrap { position: relative; }
