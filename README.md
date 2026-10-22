@@ -28,6 +28,27 @@ Options (environment variables):
 | `HOST`               | `127.0.0.1` | Use `0.0.0.0` to share on a LAN |
 | `WORKFLOWS_DATA_DIR` | `./data`    | Where workflow JSON is stored   |
 
+## Versioning and releases
+
+Workflows uses [semantic versioning](https://semver.org) (`MAJOR.MINOR.PATCH`). The version in
+`package.json` is the single source of truth.
+
+| Change                                  | Bump    | Command                                    |
+| --------------------------------------- | ------- | ------------------------------------------ |
+| Bug fix, no behavior change for users   | `PATCH` | `npm version patch --no-git-tag-version`   |
+| New feature, backwards compatible       | `MINOR` | `npm version minor --no-git-tag-version`   |
+| Breaking change (e.g. saved file format) | `MAJOR` | `npm version major --no-git-tag-version`   |
+| Pre-release                             | e.g. `1.2.0-beta.1` | `npm version prerelease --preid beta --no-git-tag-version` |
+
+To release, include the version bump in a pull request. When it is merged into `main`,
+`.github/workflows/release.yml`:
+
+1. creates the git tag `vX.Y.Z` and a GitHub Release with generated release notes
+   (marked as pre-release for versions like `1.2.0-beta.1`), and
+2. publishes Docker images tagged `X.Y.Z`, `X.Y` and `X` (`X` is skipped for `0.x` versions).
+
+Merges that don't change the version only update the `latest` Docker tag.
+
 ## Docker
 
 A ready-made image is published to GitHub Container Registry:
@@ -51,7 +72,7 @@ Workflows are stored in the `/data` volume, so they survive updates.
 | -------------- | ----------------------------------------------- |
 | `latest`       | Newest build of `main`                          |
 | `sha-<commit>` | A specific commit                               |
-| `1.2.3`, `1.2` | Releases, built from `v*` git tags              |
+| `1.2.3`, `1.2`, `1` | Releases (see *Versioning and releases*); `1` is skipped for `0.x` |
 
 **Staying up to date:** `.github/workflows/docker.yml` rebuilds and pushes the image on every push
 to `main`, on `v*` tags, and weekly (to pick up base-image security fixes). Pull requests only
@@ -111,4 +132,5 @@ npm run lint
 | `Dependency review` (`dependency-review.yml`) | Pull requests        | Fails if a change adds a dependency with a high/critical vulnerability |
 | `Deploy to GitHub Pages` (`pages.yml`)     | `main`                  | Tests, then publishes `public/`                       |
 | `Docker` (`docker.yml`)                    | Pull requests, `main`, `v*` tags, weekly | Builds the image; publishes it to GHCR (not on PRs) |
+| `Release` (`release.yml`)                  | `main`                  | Tags `vX.Y.Z`, creates a GitHub Release and versioned Docker images when `package.json`'s version is new |
 | CodeQL (GitHub default setup)              | Pull requests, `main`   | Security scanning                                     |
