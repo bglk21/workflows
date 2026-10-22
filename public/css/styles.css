@@ -57,9 +57,8 @@ button.ghost-danger:hover { color: var(--danger); }
 
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.2px; margin-right: 6px; }
 .brand-mark {
-  width: 22px; height: 22px; border-radius: 7px;
-  background: linear-gradient(135deg, #7c8cff, #38bdf8 60%, #34d399);
-  box-shadow: 0 0 18px rgba(124, 140, 255, 0.45);
+  width: 26px; height: 26px;
+  filter: drop-shadow(0 0 10px rgba(124, 140, 255, 0.4));
 }
 
 .group { display: flex; gap: 6px; align-items: center; padding-left: 14px; border-left: 1px solid var(--border); }
