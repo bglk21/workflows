@@ -8,7 +8,8 @@ A simple, web-based workflow editor with a dark look.
 - Decisions: connections leaving a decision get labels (`Yes`, `No`, `Option 3`, …) that you can
   rename and recolor.
 - Free text: double-click empty space (or use **T Text**) and drag it anywhere.
-- Undo/redo, zoom/pan, export/import as JSON, export as PNG image. Workflows auto-save to `data/`.
+- Undo/redo, zoom/pan (pinch on touch screens), export/import as JSON, export as PNG image.
+- Works on phones: two-row toolbar and a bottom sheet for editing. Workflows auto-save to `data/`.
 
 ## Run
 
@@ -99,7 +100,7 @@ browser's localStorage (per browser, per device) instead of `data/`.
 | Edit text / label   | Double-click, or select and press `Enter`              |
 | Color, label, shape | Select it and use the panel on the right               |
 | Resize block        | Drag the square in the selected block's corner; text scales along. Hold `Ctrl` to keep proportions |
-| Pan / zoom          | Drag empty space (or `Space`+drag) / mouse wheel       |
+| Pan / zoom          | Drag empty space (or `Space`+drag) / mouse wheel; on touch screens drag with one finger / pinch |
 | Delete              | `Delete` / `Backspace`                                 |
 | New / rename / export / import / delete workflow | `⋯` menu next to the workflow picker |
 | Show help again     | `?` button in the top-right corner                     |

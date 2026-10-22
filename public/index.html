@@ -11,7 +11,7 @@
   <header class="topbar">
     <div class="brand">
       <img class="brand-mark" src="icon.svg" alt="">
-      <span>Workflows</span>
+      <span class="brand-name">Workflows</span>
     </div>
 
     <div class="group">
@@ -31,17 +31,19 @@
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </div>
 
-    <div class="group">
-      <button class="tool" data-add="process" title="Add a step" aria-label="Add a step"><span class="tool-icon" aria-hidden="true">▭</span><span class="tool-label">Step</span></button>
-      <button class="tool" data-add="decision" title="Add a decision" aria-label="Add a decision"><span class="tool-icon" aria-hidden="true">◇</span><span class="tool-label">Decision</span></button>
-      <button class="tool" data-add="terminal" title="Add a start or end" aria-label="Add a start or end"><span class="tool-icon" aria-hidden="true">⬭</span><span class="tool-label">Start / End</span></button>
-      <button class="tool" data-add="text" title="Add text" aria-label="Add text"><span class="tool-icon" aria-hidden="true">T</span><span class="tool-label">Text</span></button>
-    </div>
+    <div class="tools-row">
+      <div class="group">
+        <button class="tool" data-add="process" title="Add a step" aria-label="Add a step"><span class="tool-icon" aria-hidden="true">▭</span><span class="tool-label">Step</span></button>
+        <button class="tool" data-add="decision" title="Add a decision" aria-label="Add a decision"><span class="tool-icon" aria-hidden="true">◇</span><span class="tool-label">Decision</span></button>
+        <button class="tool" data-add="terminal" title="Add a start or end" aria-label="Add a start or end"><span class="tool-icon" aria-hidden="true">⬭</span><span class="tool-label">Start / End</span></button>
+        <button class="tool" data-add="text" title="Add text" aria-label="Add text"><span class="tool-icon" aria-hidden="true">T</span><span class="tool-label">Text</span></button>
+      </div>
 
-    <div class="group">
-      <button class="icon" data-action="undo" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
-      <button class="icon" data-action="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
-      <button class="icon" data-action="fit" title="Fit to screen" aria-label="Fit to screen">⤢</button>
+      <div class="group">
+        <button class="icon" data-action="undo" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+        <button class="icon" data-action="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+        <button class="icon" data-action="fit" title="Fit to screen" aria-label="Fit to screen">⤢</button>
+      </div>
     </div>
 
     <div class="topbar-end">
