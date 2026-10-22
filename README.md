@@ -2,6 +2,24 @@
 
 A simple, web-based workflow editor with a dark look.
 
+> ### ▶ Try the demo: **https://bglk21.github.io/workflows/**
+>
+> The demo runs entirely in your browser (hosted on GitHub Pages), with nothing to install. It is a
+> **demo**: your workflows are saved only in that browser on that device (localStorage). They are not
+> uploaded, shared or backed up, and clearing the site's data deletes them. Use **⋯ → Export JSON**
+> to keep a copy. The demo is updated automatically with every change merged into `main`.
+>
+> To keep workflows on your own machine or server, run it with [Node](#run) or [Docker](#docker).
+
+| How to run           | Where workflows are saved           | Best for                    |
+| -------------------- | ----------------------------------- | --------------------------- |
+| [Demo in the browser](https://bglk21.github.io/workflows/) | Your browser only (localStorage) | Trying it out |
+| [Node](#run) (`npm start`) | `data/` folder on that machine | Local use, development |
+| [Docker](#docker)    | The `/data` volume                  | Self-hosting                |
+| [Install as an app](#install-as-an-app-pwa) | Same as where you installed it from | Phone or desktop app feel |
+
+## Features
+
 - Blocks: **Step**, **Decision** (diamond) and **Start / End**, each with its own text and color.
 - Connections: drag from a dot on a block's edge to another block. Lines are routed
   orthogonally and go around other blocks instead of through them.
@@ -10,7 +28,8 @@ A simple, web-based workflow editor with a dark look.
 - Free text: double-click empty space (or use **T Text**) and drag it anywhere.
 - Undo/redo, zoom/pan (pinch on touch screens), export/import as JSON, export as PNG image.
 - Works on phones: two-row toolbar and a bottom sheet for editing.
-- Installable as an app (PWA) on Android, iPhone and desktop; opens offline once installed. Workflows auto-save to `data/`.
+- Installable as an app (PWA) on Android, iPhone and desktop; opens offline once installed.
+- Auto-saves as you work.
 
 ## Run
 
@@ -99,10 +118,11 @@ build and smoke-test it.
 
 To build locally instead of pulling, replace `image:` with `build: .` in `docker-compose.yml`.
 
-## GitHub Pages
+## GitHub Pages (the demo)
 
-The app also runs as a static site. Without the Node server it saves workflows in the
-browser's localStorage (per browser, per device) instead of `data/`.
+The [demo](https://bglk21.github.io/workflows/) is the same app served as a static site. Without
+the Node server it saves workflows in the browser's localStorage (per browser, per device) instead
+of `data/`.
 
 `.github/workflows/pages.yml` runs the tests and deploys `public/` on every push to `main`
 (or manually via **Actions → Deploy to GitHub Pages → Run workflow**). One-time setup:
