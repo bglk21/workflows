@@ -11,14 +11,5 @@ services:
     volumes:
       - workflows-data:/data
 
-  # Optional: automatically pull new images and restart the app.
-  # Uncomment to keep the container up to date with every release.
-  # watchtower:
-  #   image: containrrr/watchtower
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   command: --interval 3600 --cleanup workflows
-
 volumes:
   workflows-data:

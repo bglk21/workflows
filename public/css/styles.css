@@ -41,7 +41,6 @@ button:active { transform: translateY(1px); }
 button.active { border-color: var(--accent); background: rgba(124, 140, 255, 0.16); }
 button.danger { color: var(--danger); border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); }
 button.danger:hover { background: rgba(248, 113, 113, 0.16); }
-button.ghost-danger:hover { color: var(--danger); }
 
 /* ---------- top bar ---------- */
 
@@ -64,7 +63,26 @@ button.ghost-danger:hover { color: var(--danger); }
 .group { display: flex; gap: 6px; align-items: center; padding-left: 14px; border-left: 1px solid var(--border); }
 #workflow-select { max-width: 220px; }
 
-.save-status { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.topbar-end { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.version { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; opacity: 0.7; }
+.save-status { color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+button.icon { width: 34px; height: 34px; padding: 0; display: inline-grid; place-items: center; font-size: 16px; line-height: 1; }
+button.icon.small { width: 26px; height: 26px; font-size: 12px; }
+
+.menu-wrap { position: relative; }
+.menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+  min-width: 170px; padding: 5px;
+  display: flex; flex-direction: column;
+  background: var(--panel-2); border: 1px solid var(--border-strong); border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+.menu[hidden] { display: none; }
+.menu button { text-align: left; border: 0; background: transparent; border-radius: 6px; padding: 7px 10px; }
+.menu button:hover { background: rgba(255, 255, 255, 0.06); }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 2px; width: auto; }
+.menu .menu-danger { color: var(--danger); }
 .save-status[data-kind='ok']::before { content: '● '; color: var(--ok); }
 .save-status[data-kind='error'] { color: var(--danger); }
 
@@ -183,7 +201,9 @@ button.ghost-danger:hover { color: var(--danger); }
   display: flex; flex-direction: column; gap: 14px;
 }
 
+.inspector[hidden] { display: none; }
 .inspector h2 { margin: 0; font-size: 16px; }
+.inspector-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .inspector h3 { margin: 8px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 
 .field { display: flex; flex-direction: column; gap: 6px; }

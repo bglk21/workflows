@@ -9,7 +9,7 @@ export default [
     languageOptions: { globals: globals.browser },
   },
   {
-    files: ['server.js', 'test/**/*.js', 'eslint.config.js'],
+    files: ['server.js', 'scripts/**/*.js', 'test/**/*.js', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },
   {
