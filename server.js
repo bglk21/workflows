@@ -166,4 +166,9 @@ if (isMain) {
     console.log(`Workflows running at http://${host}:${port}`);
     console.log(`Saving workflows to ${dataDir}`);
   });
+
+  // Exit promptly on `docker stop` / Ctrl+C; Node ignores SIGTERM as PID 1.
+  for (const signal of ['SIGTERM', 'SIGINT']) {
+    process.on(signal, () => server.close(() => process.exit(0)));
+  }
 }
