@@ -77,8 +77,7 @@ Workflows are stored in the `/data` volume, so they survive updates.
 
 **Staying up to date:** `.github/workflows/docker.yml` rebuilds and pushes the image on every push
 to `main`, on `v*` tags, and weekly (to pick up base-image security fixes). Pull requests only
-build and smoke-test it. To have running containers update themselves, uncomment the optional
-`watchtower` service in `docker-compose.yml`.
+build and smoke-test it.
 
 To build locally instead of pulling, replace `image:` with `build: .` in `docker-compose.yml`.
 
