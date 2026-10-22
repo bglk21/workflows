@@ -9,6 +9,18 @@ export const NODE_TYPES = {
   text: { label: 'Text', w: 120, h: 28, text: 'Text', color: '#e2e8f0', fontSize: 16 },
 };
 
+const LABEL_FONT_SIZE = { process: 14, decision: 13, terminal: 14 };
+const MIN_LABEL_SCALE = 0.75;
+const MAX_LABEL_SCALE = 4;
+
+/** Label font size for a block: scales with the block relative to its default size. */
+export function labelFontSize(node) {
+  const d = NODE_TYPES[node.type];
+  const scale = Math.min(node.w / d.w, node.h / d.h);
+  const clamped = Math.min(MAX_LABEL_SCALE, Math.max(MIN_LABEL_SCALE, scale));
+  return Math.round(LABEL_FONT_SIZE[node.type] * clamped * 10) / 10;
+}
+
 const COLOR_PATTERN = /^#[0-9a-f]{3,8}$/i;
 const DEFAULT_EDGE_COLOR = '#94a3b8';
 

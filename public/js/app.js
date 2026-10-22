@@ -3,7 +3,7 @@ import * as api from './api.js';
 import { VERSION } from './version.js';
 import { renderPng } from './export-png.js';
 import {
-  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, normalizeDoc, sampleWorkflow, uid,
+  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, labelFontSize, normalizeDoc, sampleWorkflow, uid,
 } from './model.js';
 
 const GRID = 10;
@@ -307,7 +307,7 @@ function nodeMarkup(node) {
   return `${head}
     ${shapeMarkup(node)}
     <foreignObject width="${node.w}" height="${node.h}" class="fo">
-      <div xmlns="http://www.w3.org/1999/xhtml" class="node-label">${escapeHtml(node.text)}</div>
+      <div xmlns="http://www.w3.org/1999/xhtml" class="node-label" style="font-size:${labelFontSize(node)}px">${escapeHtml(node.text)}</div>
     </foreignObject>
     ${portsMarkup(node)}
     ${handle}
@@ -415,6 +415,7 @@ function helpInspector() {
       <li>Drag from a <b>dot</b> on a block to another block to connect them. Lines route around other blocks.</li>
       <li>Connections out of a decision are labelled <b>Yes</b>, <b>No</b>, … — click a line to change its label or color.</li>
       <li>Double-click a block, line or text to edit it. Double-click empty space to add text.</li>
+      <li>Drag the corner square of a selected block to resize it; its text scales along. Hold <kbd>Ctrl</kbd> to keep its proportions.</li>
     </ul>
     <h3>Shortcuts</h3>
     <ul class="help keys">
@@ -646,7 +647,7 @@ function openEditor(kind, id) {
       top: `${offsetY + p.y}px`,
       width: `${Math.max(minW, item.w * k)}px`,
       height: `${Math.max(item.h * k, 30)}px`,
-      fontSize: `${(item.type === 'text' ? item.fontSize : 14) * k}px`,
+      fontSize: `${(item.type === 'text' ? item.fontSize : labelFontSize(item)) * k}px`,
       color: item.type === 'text' ? item.color : '',
     });
   }
@@ -814,8 +815,7 @@ window.addEventListener('pointermove', (e) => {
   }
 
   if (drag.mode === 'resize') {
-    const w = Math.max(60, snap(drag.w + world.x - drag.start.x));
-    const h = Math.max(30, snap(drag.h + world.y - drag.start.y));
+    const { w, h } = resizedSize(drag, world, e.ctrlKey || e.metaKey);
     if (w === node.w && h === node.h) return;
     if (!drag.moved) pushUndo(drag.before);
     drag.moved = true;
@@ -824,6 +824,22 @@ window.addEventListener('pointermove', (e) => {
     scheduleRender();
   }
 });
+
+const MIN_BLOCK_W = 60;
+const MIN_BLOCK_H = 30;
+
+/** New block size while dragging the resize handle; `keepRatio` locks the starting proportions. */
+function resizedSize(drag, world, keepRatio) {
+  const dx = world.x - drag.start.x;
+  const dy = world.y - drag.start.y;
+  if (!keepRatio) {
+    return { w: Math.max(MIN_BLOCK_W, snap(drag.w + dx)), h: Math.max(MIN_BLOCK_H, snap(drag.h + dy)) };
+  }
+  // Follow whichever axis was dragged further; skip grid snapping so the ratio holds.
+  const minFactor = Math.max(MIN_BLOCK_W / drag.w, MIN_BLOCK_H / drag.h);
+  const factor = Math.max(minFactor, (drag.w + dx) / drag.w, (drag.h + dy) / drag.h);
+  return { w: Math.round(drag.w * factor), h: Math.round(drag.h * factor) };
+}
 
 function endDrag(e) {
   if (!drag) return;

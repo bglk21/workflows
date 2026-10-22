@@ -142,7 +142,7 @@ button.icon.small { width: 26px; height: 26px; font-size: 12px; }
   color: var(--text);
   white-space: pre-wrap; overflow-wrap: anywhere; overflow: hidden;
 }
-.node-decision .node-label { padding: 6px 22%; font-size: 13px; }
+.node-decision .node-label { padding: 6px 22%; }
 
 .free-text {
   display: inline-block;
