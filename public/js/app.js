@@ -3,7 +3,8 @@ import * as api from './api.js';
 import { VERSION } from './version.js';
 import { renderPng } from './export-png.js';
 import {
-  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, labelFontSize, normalizeDoc, sampleWorkflow, uid,
+  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, labelFontSize, normalizeDoc, relativeTime,
+  sampleWorkflow, uid,
 } from './model.js';
 
 const GRID = 10;
@@ -29,12 +30,15 @@ const edgesEl = $('#edges');
 const nodesEl = $('#nodes');
 const overlayEl = $('#overlay');
 const inspectorEl = $('#inspector');
-const workflowSelect = $('#workflow-select');
 const saveStatusEl = $('#save-status');
 const zoomEl = $('#zoom-indicator');
 const importInput = $('#import-file');
 const workflowMenu = $('#workflow-menu');
 const menuButton = $('[data-action="toggle-menu"]');
+const docTitleEl = $('#doc-title');
+const switcherSearch = $('#switcher-search');
+const switcherList = $('#switcher-list');
+const renameItem = $('[data-action="rename-workflow"]');
 
 const measureCtx = document.createElement('canvas').getContext('2d');
 measureCtx.font = '600 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
@@ -147,7 +151,9 @@ async function saveNow() {
   saveTimer = null;
   setSaveStatus('Saving…');
   try {
-    await api.saveWorkflow(state.doc);
+    const { updatedAt } = await api.saveWorkflow(state.doc);
+    const entry = state.workflows.find((w) => w.id === state.doc.id);
+    if (entry) entry.updatedAt = updatedAt;
     setSaveStatus(savedLabel(), 'ok');
   } catch (err) {
     console.error(err);
@@ -429,6 +435,7 @@ function helpInspector() {
     <ul class="help keys">
       <li><kbd>Del</kbd> delete selection</li>
       <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redo</li>
+      <li><kbd>Ctrl</kbd>+<kbd>K</kbd> switch workflow</li>
       <li><kbd>Ctrl</kbd>+<kbd>D</kbd> duplicate block</li>
       <li><kbd>Enter</kbd> edit selection · <kbd>Esc</kbd> deselect</li>
       <li><kbd>Space</kbd>+drag pan</li>
@@ -436,7 +443,7 @@ function helpInspector() {
     </ul>
     <h3>Install as an app</h3>
     <ul class="help">
-      <li><b>Android / Chrome:</b> ⋯ → Install app (or the browser menu → Install app).</li>
+      <li><b>Android / Chrome:</b> workflow name ▾ → Install app (or the browser menu → Install app).</li>
       <li><b>iPhone / iPad:</b> open in Safari, tap Share → Add to Home Screen.</li>
     </ul>
     <p class="hint">Reopen this any time with the <b>?</b> button.</p>`;
@@ -1014,6 +1021,11 @@ window.addEventListener('keydown', (e) => {
     redo();
     return;
   }
+  if (mod && key === 'k') {
+    e.preventDefault();
+    setMenuOpen(workflowMenu.hidden);
+    return;
+  }
   if (mod && key === 'd') {
     e.preventDefault();
     duplicateSelection();
@@ -1049,11 +1061,71 @@ window.addEventListener('keyup', (e) => {
 
 // ---------- workflows ----------
 
-function renderWorkflowSelect() {
-  workflowSelect.innerHTML = state.workflows
-    .map((w) => `<option value="${escapeHtml(w.id)}"${w.id === state.doc.id ? ' selected' : ''}>${escapeHtml(w.name)}</option>`)
-    .join('');
+// ---------- workflow switcher (title menu) ----------
+
+let switcherIndex = 0;
+
+function switcherMatches() {
+  const query = switcherSearch.value.trim().toLowerCase();
+  const sorted = [...state.workflows].sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
+  if (!query) return sorted;
+  return sorted.filter((w) => w.name.toLowerCase().includes(query));
 }
+
+function renderSwitcherList() {
+  const matches = switcherMatches();
+  switcherIndex = Math.min(switcherIndex, Math.max(0, matches.length - 1));
+  if (!matches.length) {
+    switcherList.innerHTML = '<div class="switcher-empty">No workflows match</div>';
+    return;
+  }
+  switcherList.innerHTML = matches.map((w, i) => {
+    const current = w.id === state.doc.id;
+    const cls = `switcher-item${current ? ' current' : ''}${i === switcherIndex ? ' active' : ''}`;
+    const meta = current ? '✓ open' : relativeTime(w.updatedAt);
+    return `<button class="${cls}" role="option" aria-selected="${current}" data-open="${escapeHtml(w.id)}">
+      <b>${escapeHtml(w.name)}</b><span>${escapeHtml(meta)}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderWorkflowTitle() {
+  docTitleEl.textContent = state.doc.name;
+  renameItem.textContent = `✎ Rename “${state.doc.name}”`;
+  if (!workflowMenu.hidden) renderSwitcherList();
+}
+
+function openFromSwitcher(id) {
+  setMenuOpen(false);
+  if (id === state.doc.id) return;
+  switchWorkflow(id);
+}
+
+switcherSearch.addEventListener('input', () => {
+  switcherIndex = 0;
+  renderSwitcherList();
+});
+
+switcherSearch.addEventListener('keydown', (e) => {
+  const matches = switcherMatches();
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const step = e.key === 'ArrowDown' ? 1 : -1;
+    switcherIndex = (switcherIndex + step + matches.length) % Math.max(1, matches.length);
+    renderSwitcherList();
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (matches[switcherIndex]) openFromSwitcher(matches[switcherIndex].id);
+    return;
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    setMenuOpen(false);
+    menuButton.focus();
+  }
+});
 
 function rememberLastOpened(id) {
   try {
@@ -1093,7 +1165,7 @@ function openDoc(doc) {
   state.redo = [];
   state.selection = null;
   rememberLastOpened(state.doc.id);
-  renderWorkflowSelect();
+  renderWorkflowTitle();
   renderInspector();
   fitView();
 }
@@ -1106,7 +1178,7 @@ async function flushSave() {
 async function refreshList() {
   state.workflows = await api.listWorkflows();
   if (!state.workflows.some((w) => w.id === state.doc.id)) state.workflows.unshift({ id: state.doc.id, name: state.doc.name });
-  renderWorkflowSelect();
+  renderWorkflowTitle();
 }
 
 async function createWorkflow(doc) {
@@ -1241,8 +1313,16 @@ importInput.addEventListener('change', async () => {
 });
 
 function setMenuOpen(open) {
+  if (workflowMenu.hidden === !open) return;
   workflowMenu.hidden = !open;
   menuButton.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  switcherSearch.value = '';
+  switcherIndex = 0;
+  renderSwitcherList();
+  // On touch screens focusing would pop up the keyboard over the list.
+  if (!COARSE_POINTER) switcherSearch.focus();
+  refreshList().catch((err) => console.error(err));
 }
 
 document.querySelector('.topbar').addEventListener('click', (e) => {
@@ -1250,6 +1330,10 @@ document.querySelector('.topbar').addEventListener('click', (e) => {
   if (!btn) return;
   if (btn.dataset.action === 'toggle-menu') {
     setMenuOpen(workflowMenu.hidden);
+    return;
+  }
+  if (btn.dataset.open) {
+    openFromSwitcher(btn.dataset.open);
     return;
   }
   setMenuOpen(false);
@@ -1269,7 +1353,6 @@ document.addEventListener('pointerdown', (e) => {
   setMenuOpen(false);
 });
 
-workflowSelect.addEventListener('change', () => switchWorkflow(workflowSelect.value));
 window.addEventListener('resize', scheduleRender);
 window.addEventListener('beforeunload', () => {
   if (!saveTimer) return;

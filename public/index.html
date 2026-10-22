@@ -23,12 +23,17 @@
     </div>
 
     <div class="group">
-      <select id="workflow-select" title="Open workflow" aria-label="Open workflow"></select>
       <div class="menu-wrap">
-        <button class="icon" data-action="toggle-menu" title="Workflow actions" aria-label="Workflow actions" aria-haspopup="menu" aria-expanded="false">⋯</button>
-        <div id="workflow-menu" class="menu" role="menu" hidden>
-          <button role="menuitem" data-action="new-workflow">New workflow</button>
-          <button role="menuitem" data-action="rename-workflow">Rename</button>
+        <button class="title-button" data-action="toggle-menu" title="Switch workflow (Ctrl+K)" aria-haspopup="dialog" aria-expanded="false">
+          <span id="doc-title" class="doc-title"></span><span class="caret" aria-hidden="true">▾</span>
+        </button>
+        <div id="workflow-menu" class="menu switcher" role="dialog" aria-label="Workflows" hidden>
+          <input id="switcher-search" class="switcher-search" type="search" placeholder="Switch workflow…   Ctrl+K" aria-label="Search workflows" autocomplete="off">
+          <div class="switcher-label">Recent</div>
+          <div id="switcher-list" class="switcher-list" role="listbox" aria-label="Workflows"></div>
+          <hr>
+          <button role="menuitem" data-action="new-workflow">＋ New workflow</button>
+          <button role="menuitem" data-action="rename-workflow" class="ellipsis">✎ Rename</button>
           <button role="menuitem" data-action="export">Export JSON</button>
           <button role="menuitem" data-action="export-png">Export PNG</button>
           <button role="menuitem" data-action="import">Import JSON</button>

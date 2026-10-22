@@ -57,7 +57,7 @@ Merges that don't change the version only update the `latest` Docker tag.
 Workflows can be installed to the home screen and opens in its own window, also offline.
 Installing needs https (e.g. the GitHub Pages site) or `localhost`.
 
-- **Android / Chrome / Edge:** `⋯` → **Install app**, or the browser menu → *Install app*.
+- **Android / Chrome / Edge:** workflow name `▾` → **Install app**, or the browser menu → *Install app*.
 - **iPhone / iPad:** open the site in Safari → Share → **Add to Home Screen**.
 
 The service worker (`public/sw.js`) loads everything from the network first and only falls back to
@@ -119,7 +119,8 @@ browser's localStorage (per browser, per device) instead of `data/`.
 | Resize block        | Drag the square in the selected block's corner; text scales along. Hold `Ctrl` to keep proportions |
 | Pan / zoom          | Drag empty space (or `Space`+drag) / mouse wheel; on touch screens drag with one finger / pinch |
 | Delete              | `Delete` / `Backspace`                                 |
-| New / rename / export / import / delete workflow | `⋯` menu next to the workflow picker |
+| Switch workflow     | Click the workflow name at the top (or `Ctrl+K`), type to search, `↑`/`↓` + `Enter` |
+| New / rename / export / import / delete workflow | Same menu, under the list of workflows |
 | Show help again     | `?` button in the top-right corner                     |
 | Undo / redo         | `Ctrl+Z` / `Ctrl+Shift+Z`                               |
 | Duplicate           | `Ctrl+D`                                               |
