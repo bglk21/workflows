@@ -306,10 +306,10 @@ kbd {
   .brand-name, .version { display: none; }
   .brand { margin-right: 0; }
   .topbar > .group { padding-left: 0; border-left: 0; flex: 1; min-width: 0; }
-  .topbar > .group .menu-wrap { flex: 1; min-width: 0; }
+  .topbar > .group .title-wrap { flex: 1; min-width: 0; }
   .title-button { width: 100%; max-width: none; justify-content: space-between; }
-  /* The switcher opens as a bottom sheet on phones. */
-  .switcher {
+  /* Menus open as bottom sheets on phones. */
+  .menu {
     position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: auto; max-height: 75dvh; overflow-y: auto;
     border-radius: 16px 16px 0 0; padding: 14px 14px calc(18px + env(safe-area-inset-bottom));
   }

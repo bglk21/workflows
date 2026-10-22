@@ -34,6 +34,8 @@ const saveStatusEl = $('#save-status');
 const zoomEl = $('#zoom-indicator');
 const importInput = $('#import-file');
 const workflowMenu = $('#workflow-menu');
+const actionsMenu = $('#actions-menu');
+const actionsButton = $('[data-action="toggle-actions"]');
 const menuButton = $('[data-action="toggle-menu"]');
 const docTitleEl = $('#doc-title');
 const switcherSearch = $('#switcher-search');
@@ -443,7 +445,7 @@ function helpInspector() {
     </ul>
     <h3>Install as an app</h3>
     <ul class="help">
-      <li><b>Android / Chrome:</b> workflow name ▾ → Install app (or the browser menu → Install app).</li>
+      <li><b>Android / Chrome:</b> ⋯ → Install app (or the browser menu → Install app).</li>
       <li><b>iPhone / iPad:</b> open in Safari, tap Share → Add to Home Screen.</li>
     </ul>
     <p class="hint">Reopen this any time with the <b>?</b> button.</p>`;
@@ -1023,6 +1025,7 @@ window.addEventListener('keydown', (e) => {
   }
   if (mod && key === 'k') {
     e.preventDefault();
+    setActionsOpen(false);
     setMenuOpen(workflowMenu.hidden);
     return;
   }
@@ -1037,7 +1040,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.key === 'Escape') {
-    setMenuOpen(false);
+    closeMenus();
     select(null);
     return;
   }
@@ -1312,6 +1315,18 @@ importInput.addEventListener('change', async () => {
   }
 });
 
+/** The ⋯ menu: options for the open workflow (rename, export, import, install, delete). */
+function setActionsOpen(open) {
+  actionsMenu.hidden = !open;
+  actionsButton.setAttribute('aria-expanded', String(open));
+}
+
+function closeMenus() {
+  setMenuOpen(false);
+  setActionsOpen(false);
+}
+
+/** The title menu: switch between workflows or start a new one. */
 function setMenuOpen(open) {
   if (workflowMenu.hidden === !open) return;
   workflowMenu.hidden = !open;
@@ -1329,14 +1344,20 @@ document.querySelector('.topbar').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
   if (btn.dataset.action === 'toggle-menu') {
+    setActionsOpen(false);
     setMenuOpen(workflowMenu.hidden);
+    return;
+  }
+  if (btn.dataset.action === 'toggle-actions') {
+    setMenuOpen(false);
+    setActionsOpen(actionsMenu.hidden);
     return;
   }
   if (btn.dataset.open) {
     openFromSwitcher(btn.dataset.open);
     return;
   }
-  setMenuOpen(false);
+  closeMenus();
   if (btn.dataset.add) {
     addNode(btn.dataset.add);
     return;
@@ -1349,8 +1370,8 @@ document.querySelector('.topbar').addEventListener('click', (e) => {
 });
 
 document.addEventListener('pointerdown', (e) => {
-  if (workflowMenu.hidden || e.target.closest('.menu-wrap')) return;
-  setMenuOpen(false);
+  if (e.target.closest('.menu-wrap')) return;
+  closeMenus();
 });
 
 window.addEventListener('resize', scheduleRender);

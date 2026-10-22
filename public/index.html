@@ -23,7 +23,7 @@
     </div>
 
     <div class="group">
-      <div class="menu-wrap">
+      <div class="menu-wrap title-wrap">
         <button class="title-button" data-action="toggle-menu" title="Switch workflow (Ctrl+K)" aria-haspopup="dialog" aria-expanded="false">
           <span id="doc-title" class="doc-title"></span><span class="caret" aria-hidden="true">▾</span>
         </button>
@@ -33,12 +33,18 @@
           <div id="switcher-list" class="switcher-list" role="listbox" aria-label="Workflows"></div>
           <hr>
           <button role="menuitem" data-action="new-workflow">＋ New workflow</button>
+        </div>
+      </div>
+      <div class="menu-wrap">
+        <button class="icon" data-action="toggle-actions" title="Workflow options" aria-label="Workflow options" aria-haspopup="menu" aria-expanded="false">⋯</button>
+        <div id="actions-menu" class="menu" role="menu" aria-label="Workflow options" hidden>
           <button role="menuitem" data-action="rename-workflow" class="ellipsis">✎ Rename</button>
+          <hr>
           <button role="menuitem" data-action="export">Export JSON</button>
           <button role="menuitem" data-action="export-png">Export PNG</button>
           <button role="menuitem" data-action="import">Import JSON</button>
-          <button role="menuitem" data-action="install" hidden>Install app</button>
           <hr>
+          <button role="menuitem" data-action="install" hidden>Install app</button>
           <button role="menuitem" data-action="delete-workflow" class="menu-danger">Delete</button>
         </div>
       </div>
