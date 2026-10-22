@@ -28,6 +28,15 @@ Options (environment variables):
 | `HOST`               | `127.0.0.1` | Use `0.0.0.0` to share on a LAN |
 | `WORKFLOWS_DATA_DIR` | `./data`    | Where workflow JSON is stored   |
 
+## GitHub Pages
+
+The app also runs as a static site. Without the Node server it saves workflows in the
+browser's localStorage (per browser, per device) instead of `data/`.
+
+`.github/workflows/pages.yml` runs the tests and deploys `public/` on every push to `main`
+(or manually via **Actions → Deploy to GitHub Pages → Run workflow**). One-time setup:
+**Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
 ## Using it
 
 | Action              | How                                                    |

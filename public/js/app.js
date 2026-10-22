@@ -124,13 +124,17 @@ function setSaveStatus(text, kind = '') {
   saveStatusEl.dataset.kind = kind;
 }
 
+function savedLabel() {
+  return api.storageMode() === 'local' ? 'Saved in this browser' : 'Saved';
+}
+
 async function saveNow() {
   clearTimeout(saveTimer);
   saveTimer = null;
   setSaveStatus('Saving…');
   try {
     await api.saveWorkflow(state.doc);
-    setSaveStatus('Saved', 'ok');
+    setSaveStatus(savedLabel(), 'ok');
   } catch (err) {
     console.error(err);
     setSaveStatus('Save failed', 'error');
@@ -1044,13 +1048,7 @@ workflowSelect.addEventListener('change', () => switchWorkflow(workflowSelect.va
 window.addEventListener('resize', scheduleRender);
 window.addEventListener('beforeunload', () => {
   if (!saveTimer) return;
-  // Best effort: keepalive lets the request finish while the page unloads.
-  fetch(`/api/workflows/${state.doc.id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(state.doc),
-    keepalive: true,
-  });
+  api.saveOnUnload(state.doc);
 });
 
 // ---------- boot ----------
@@ -1062,7 +1060,7 @@ async function boot() {
     list = await api.listWorkflows();
   } catch (err) {
     console.error(err);
-    setSaveStatus('Server unavailable — run "npm start"', 'error');
+    setSaveStatus('Could not load workflows', 'error');
     openDoc(sampleWorkflow());
     return;
   }
@@ -1076,7 +1074,7 @@ async function boot() {
   const last = readLastOpened();
   const id = list.some((w) => w.id === last) ? last : list[0].id;
   await switchWorkflow(id);
-  setSaveStatus('Saved', 'ok');
+  setSaveStatus(savedLabel(), 'ok');
 }
 
 boot();
