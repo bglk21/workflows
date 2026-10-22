@@ -54,6 +54,14 @@ npm version minor --no-git-tag-version   # bump version; also regenerates public
   (Playwright is preinstalled in cloud sessions) on **desktop and a phone profile** (iPhone 13).
 - Say plainly what was verified and what wasn't (for example, "not tested on a real iPhone").
 
+## License and security
+
+- Licensed **GPL-3.0-or-later**, copyright bglk21 (`LICENSE` is the verbatim GPL v3 text; the
+  notice is in the README and the app's help panel, as GPL section 5(d) asks of interactive programs).
+  Keep new dependencies GPL-compatible.
+- Vulnerabilities are reported privately via GitHub's private vulnerability reporting (`SECURITY.md`).
+  Only the latest release is supported.
+
 ## Code conventions
 
 - **Guard clauses, minimal nesting.** Return early instead of using `if/else` pyramids.
@@ -71,6 +79,7 @@ npm version minor --no-git-tag-version   # bump version; also regenerates public
   - undo / redo / fit,
   - version, save status and `?`.
 - The help panel shows on the first visit, can be dismissed (remembered per browser) and reopens with `?`.
+  It ends with a link to the repository, the version, the copyright and license, and a security link.
 - Block text scales with block size. Ctrl (or Cmd) while resizing keeps the proportions.
 - Phones (≤ 760 px):
   - two-row top bar, with the side panel and menus as bottom sheets,

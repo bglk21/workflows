@@ -20,6 +20,7 @@ const HANDLE_SIZE = COARSE_POINTER ? 22 : 10;
 const SHEET_LAYOUT = window.matchMedia('(max-width: 760px)');
 const SAVE_DELAY_MS = 400;
 const LAST_OPENED_KEY = 'workflows:last-opened';
+const REPO_URL = 'https://github.com/bglk21/workflows';
 const HELP_DISMISSED_KEY = 'workflows:help-dismissed';
 
 const $ = (sel) => document.querySelector(sel);
@@ -448,7 +449,16 @@ function helpInspector() {
       <li><b>Android / Chrome:</b> ⋯ → Install app (or the browser menu → Install app).</li>
       <li><b>iPhone / iPad:</b> open in Safari, tap Share → Add to Home Screen.</li>
     </ul>
-    <p class="hint">Reopen this any time with the <b>?</b> button.</p>`;
+    <p class="hint">Reopen this any time with the <b>?</b> button.</p>
+    <div class="about">
+      <a href="${REPO_URL}" target="_blank" rel="noopener">Source code on GitHub ↗</a>
+      <p class="hint">
+        Workflows v${VERSION} · © 2026 bglk21<br>
+        Free software under the <a href="${REPO_URL}/blob/main/LICENSE" target="_blank" rel="noopener">GNU GPL v3 or later</a>,
+        with no warranty.
+        <a href="${REPO_URL}/blob/main/SECURITY.md" target="_blank" rel="noopener">Report a security issue</a>.
+      </p>
+    </div>`;
 }
 
 function renderInspector() {

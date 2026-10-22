@@ -175,3 +175,19 @@ npm run lint
 | `Docker` (`docker.yml`)                    | Pull requests, `main`, `v*` tags, weekly | Builds the image; publishes it to GHCR (not on PRs) |
 | `Release` (`release.yml`)                  | `main`                  | Tags `vX.Y.Z`, creates a GitHub Release and versioned Docker images when `package.json`'s version is new |
 | CodeQL (GitHub default setup)              | Pull requests, `main`   | Security scanning                                     |
+
+## Security
+
+Please report vulnerabilities privately. See [SECURITY.md](SECURITY.md).
+
+## License
+
+Copyright (C) 2026 bglk21
+
+Workflows is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+[GNU General Public License](LICENSE) for more details.
