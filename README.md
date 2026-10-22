@@ -63,8 +63,19 @@ public/js/model.js  Workflow data model, validation, sample workflow
 test/               node:test tests
 ```
 
-## Test
+## Test and lint
 
 ```bash
+npm install   # dev tools only (ESLint); the app itself has no dependencies
 npm test
+npm run lint
 ```
+
+## Checks on GitHub
+
+| Workflow                                   | Runs on                 | What it does                                          |
+| ------------------------------------------ | ----------------------- | ----------------------------------------------------- |
+| `CI` (`ci.yml`)                            | Pull requests, `main`   | ESLint, and tests on Node 20 and 22                   |
+| `Dependency review` (`dependency-review.yml`) | Pull requests        | Fails if a change adds a dependency with a high/critical vulnerability |
+| `Deploy to GitHub Pages` (`pages.yml`)     | `main`                  | Tests, then publishes `public/`                       |
+| CodeQL (GitHub default setup)              | Pull requests, `main`   | Security scanning                                     |
