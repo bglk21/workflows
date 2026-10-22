@@ -48,7 +48,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE }}
           tags: |
@@ -61,7 +61,7 @@ jobs:
             type=semver,pattern={{major}},value=v${{ inputs.version }},enable=${{ inputs.version != '' && !startsWith(inputs.version, '0.') }}
 
       # Pull requests only build (no push) to prove the image still builds.
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
