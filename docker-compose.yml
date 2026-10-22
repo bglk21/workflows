@@ -1,0 +1,24 @@
+# Run Workflows locally:  docker compose up -d   →  http://localhost:3000
+services:
+  workflows:
+    image: ghcr.io/bglk21/workflows:latest
+    # To build from this checkout instead of pulling, replace `image:` with:
+    # build: .
+    container_name: workflows
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - workflows-data:/data
+
+  # Optional: automatically pull new images and restart the app.
+  # Uncomment to keep the container up to date with every release.
+  # watchtower:
+  #   image: containrrr/watchtower
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   command: --interval 3600 --cleanup workflows
+
+volumes:
+  workflows-data:

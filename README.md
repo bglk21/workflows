@@ -28,6 +28,38 @@ Options (environment variables):
 | `HOST`               | `127.0.0.1` | Use `0.0.0.0` to share on a LAN |
 | `WORKFLOWS_DATA_DIR` | `./data`    | Where workflow JSON is stored   |
 
+## Docker
+
+A ready-made image is published to GitHub Container Registry:
+`ghcr.io/bglk21/workflows` (amd64 and arm64).
+
+```bash
+docker run -d -p 3000:3000 -v workflows-data:/data ghcr.io/bglk21/workflows:latest
+```
+
+Or with Docker Compose, using the included `docker-compose.yml` (copy it anywhere and adjust
+the port or volume as needed):
+
+```bash
+docker compose up -d      # start → http://localhost:3000
+docker compose pull && docker compose up -d   # update to the newest image
+```
+
+Workflows are stored in the `/data` volume, so they survive updates.
+
+| Tag            | Meaning                                         |
+| -------------- | ----------------------------------------------- |
+| `latest`       | Newest build of `main`                          |
+| `sha-<commit>` | A specific commit                               |
+| `1.2.3`, `1.2` | Releases, built from `v*` git tags              |
+
+**Staying up to date:** `.github/workflows/docker.yml` rebuilds and pushes the image on every push
+to `main`, on `v*` tags, and weekly (to pick up base-image security fixes). Pull requests only
+build and smoke-test it. To have running containers update themselves, uncomment the optional
+`watchtower` service in `docker-compose.yml`.
+
+To build locally instead of pulling, replace `image:` with `build: .` in `docker-compose.yml`.
+
 ## GitHub Pages
 
 The app also runs as a static site. Without the Node server it saves workflows in the
@@ -78,4 +110,5 @@ npm run lint
 | `CI` (`ci.yml`)                            | Pull requests, `main`   | ESLint, and tests on Node 20 and 22                   |
 | `Dependency review` (`dependency-review.yml`) | Pull requests        | Fails if a change adds a dependency with a high/critical vulnerability |
 | `Deploy to GitHub Pages` (`pages.yml`)     | `main`                  | Tests, then publishes `public/`                       |
+| `Docker` (`docker.yml`)                    | Pull requests, `main`, `v*` tags, weekly | Builds the image; publishes it to GHCR (not on PRs) |
 | CodeQL (GitHub default setup)              | Pull requests, `main`   | Security scanning                                     |
