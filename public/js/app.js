@@ -10,6 +10,13 @@ const GRID = 10;
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 3;
 const HISTORY_LIMIT = 100;
+// Larger hit targets for fingers.
+const COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
+const PORT_HIT_R = COARSE_POINTER ? 20 : 11;
+const PORT_DOT_R = COARSE_POINTER ? 7 : 5;
+const HANDLE_SIZE = COARSE_POINTER ? 22 : 10;
+// Matches the CSS breakpoint where the side panel becomes a bottom sheet.
+const SHEET_LAYOUT = window.matchMedia('(max-width: 760px)');
 const SAVE_DELAY_MS = 400;
 const LAST_OPENED_KEY = 'workflows:last-opened';
 const HELP_DISMISSED_KEY = 'workflows:help-dismissed';
@@ -127,6 +134,7 @@ function redo() {
 
 function setSaveStatus(text, kind = '') {
   saveStatusEl.textContent = text;
+  saveStatusEl.title = text;
   saveStatusEl.dataset.kind = kind;
 }
 
@@ -284,7 +292,7 @@ function portsMarkup(node) {
   return SIDES.map((side) => {
     const p = portPoint({ x: 0, y: 0, w: node.w, h: node.h }, side);
     return `<g class="port" data-port="${side}" transform="translate(${p.x},${p.y})">
-      <circle class="port-hit" r="11"></circle><circle class="port-dot" r="5"></circle>
+      <circle class="port-hit" r="${PORT_HIT_R}"></circle><circle class="port-dot" r="${PORT_DOT_R}"></circle>
     </g>`;
   }).join('');
 }
@@ -303,7 +311,7 @@ function nodeMarkup(node) {
     </g>`;
   }
 
-  const handle = selected ? `<rect class="resize-handle" data-resize="1" x="${node.w - 5}" y="${node.h - 5}" width="10" height="10" rx="2"></rect>` : '';
+  const handle = selected ? `<rect class="resize-handle" data-resize="1" x="${node.w - HANDLE_SIZE / 2}" y="${node.h - HANDLE_SIZE / 2}" width="${HANDLE_SIZE}" height="${HANDLE_SIZE}" rx="2"></rect>` : '';
   return `${head}
     ${shapeMarkup(node)}
     <foreignObject width="${node.w}" height="${node.h}" class="fo">
@@ -424,6 +432,7 @@ function helpInspector() {
       <li><kbd>Ctrl</kbd>+<kbd>D</kbd> duplicate block</li>
       <li><kbd>Enter</kbd> edit selection · <kbd>Esc</kbd> deselect</li>
       <li><kbd>Space</kbd>+drag pan</li>
+      <li>Touch: pinch to zoom, drag empty space to pan, tap a block to show its dots</li>
     </ul>
     <p class="hint">Reopen this any time with the <b>?</b> button.</p>`;
 }
@@ -560,7 +569,21 @@ function addNode(type, at = viewCenter()) {
   state.doc.nodes.push(node);
   select('node', node.id);
   changed();
+  keepSelectionVisible();
   return node;
+}
+
+/** On phones, pan up so the selected block isn't hidden behind the bottom sheet. */
+function keepSelectionVisible() {
+  if (!SHEET_LAYOUT.matches || inspectorEl.hidden) return;
+  const node = selectedNode();
+  if (!node) return;
+  const svgTop = svg.getBoundingClientRect().top;
+  const blockBottom = svgTop + toScreen({ x: node.x, y: node.y + node.h }).y;
+  const overlap = blockBottom + 16 - inspectorEl.getBoundingClientRect().top;
+  if (overlap <= 0) return;
+  state.view.y -= overlap;
+  scheduleRender();
 }
 
 function changeNodeType(node, type) {
@@ -729,8 +752,49 @@ function handleDoubleClick(hit, world) {
   requestAnimationFrame(() => openEditor('node', node.id));
 }
 
+// ---------- touch: pinch to zoom ----------
+
+const touchPoints = new Map(); // pointerId -> { x, y } in client coordinates
+let pinch = null; // { dist, world, k } at the start of the pinch
+
+const clampZoom = (k) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
+
+function twoTouchGeometry() {
+  const [a, b] = touchPoints.values();
+  return { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+}
+
+function startPinch() {
+  // A second finger turns whatever the first one started into a pinch.
+  if (drag?.moved) changed();
+  drag = null;
+  stage.classList.remove('panning');
+  svg.classList.remove('connecting');
+  const { dist, mid } = twoTouchGeometry();
+  pinch = { dist, world: toWorld(mid.x, mid.y), k: state.view.k };
+  scheduleRender();
+}
+
+/** Zoom by the change in finger distance and keep the point between the fingers under them. */
+function updatePinch() {
+  const { dist, mid } = twoTouchGeometry();
+  const box = svg.getBoundingClientRect();
+  const k = clampZoom((pinch.k * dist) / pinch.dist);
+  state.view = { k, x: mid.x - box.left - pinch.world.x * k, y: mid.y - box.top - pinch.world.y * k };
+  scheduleRender();
+}
+
 svg.addEventListener('pointerdown', (e) => {
   if (editor) closeEditor(true);
+
+  if (e.pointerType === 'touch') {
+    touchPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touchPoints.size >= 2) {
+      startPinch();
+      return;
+    }
+  }
+  if (pinch) return;
 
   if (e.button === 1 || (e.button === 0 && spaceHeld)) {
     e.preventDefault();
@@ -783,6 +847,11 @@ svg.addEventListener('pointerdown', (e) => {
 });
 
 window.addEventListener('pointermove', (e) => {
+  if (touchPoints.has(e.pointerId)) touchPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch) {
+    if (touchPoints.size >= 2) updatePinch();
+    return;
+  }
   if (!drag || drag.mode === 'dblclick') return;
   const world = toWorld(e.clientX, e.clientY);
 
@@ -842,6 +911,11 @@ function resizedSize(drag, world, keepRatio) {
 }
 
 function endDrag(e) {
+  touchPoints.delete(e.pointerId);
+  if (pinch) {
+    if (touchPoints.size < 2) pinch = null;
+    return;
+  }
   if (!drag) return;
   const finished = drag;
   drag = null;
@@ -864,6 +938,8 @@ function endDrag(e) {
   }
 
   if (finished.moved) changed();
+  // A tap (no drag) on a block: make sure it stays visible above the bottom sheet.
+  if (finished.mode === 'move' && !finished.moved) keepSelectionVisible();
 }
 
 window.addEventListener('pointerup', endDrag);
@@ -872,7 +948,7 @@ window.addEventListener('pointercancel', endDrag);
 svg.addEventListener('wheel', (e) => {
   e.preventDefault();
   const { k } = state.view;
-  const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k * Math.exp(-e.deltaY * 0.0015)));
+  const next = clampZoom(k * Math.exp(-e.deltaY * 0.0015));
   const world = toWorld(e.clientX, e.clientY);
   const box = svg.getBoundingClientRect();
   state.view.k = next;
@@ -881,9 +957,16 @@ svg.addEventListener('wheel', (e) => {
   scheduleRender();
 }, { passive: false });
 
+/** Visible part of the canvas: on phones the bottom sheet covers its lower part. */
+function visibleCanvasSize() {
+  const box = svg.getBoundingClientRect();
+  if (!SHEET_LAYOUT.matches || inspectorEl.hidden) return { width: box.width, height: box.height };
+  return { width: box.width, height: inspectorEl.getBoundingClientRect().top - box.top };
+}
+
 function fitView() {
   const nodes = state.doc.nodes;
-  const box = svg.getBoundingClientRect();
+  const box = visibleCanvasSize();
   if (!nodes.length) {
     state.view = { x: box.width / 2, y: box.height / 2, k: 1 };
     scheduleRender();
@@ -893,7 +976,7 @@ function fitView() {
   const minY = Math.min(...nodes.map((n) => n.y));
   const maxX = Math.max(...nodes.map((n) => n.x + n.w));
   const maxY = Math.max(...nodes.map((n) => n.y + n.h));
-  const pad = 80;
+  const pad = SHEET_LAYOUT.matches ? 16 : 80;
   const k = Math.min(1, (box.width - pad * 2) / (maxX - minX || 1), (box.height - pad * 2) / (maxY - minY || 1));
   const clamped = Math.max(MIN_ZOOM, k);
   state.view = {
