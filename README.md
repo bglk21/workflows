@@ -7,7 +7,7 @@ A simple, web-based workflow editor with a dark look.
 > The demo runs entirely in your browser (hosted on GitHub Pages), with nothing to install. It is a
 > **demo**: your workflows are saved only in that browser on that device (localStorage). They are not
 > uploaded, shared or backed up, and clearing the site's data deletes them. Use **⋯ → Export JSON**
-> to keep a copy. The demo is updated automatically with every change merged into `main`.
+> to keep a copy.
 >
 > To keep workflows on your own machine or server, run it with [Node](#run) or [Docker](#docker).
 
