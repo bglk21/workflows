@@ -72,7 +72,7 @@ Workflows are stored in the `/data` volume, so they survive updates.
 | -------------- | ----------------------------------------------- |
 | `latest`       | Newest build of `main`                          |
 | `sha-<commit>` | A specific commit                               |
-| `1.2.3`, `1.2` | Releases, built from `v*` git tags              |
+| `1.2.3`, `1.2`, `1` | Releases (see *Versioning and releases*); `1` is skipped for `0.x` |
 
 **Staying up to date:** `.github/workflows/docker.yml` rebuilds and pushes the image on every push
 to `main`, on `v*` tags, and weekly (to pick up base-image security fixes). Pull requests only
