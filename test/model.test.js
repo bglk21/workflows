@@ -32,3 +32,12 @@ test('relativeTime gives short edit labels', async () => {
   assert.equal(relativeTime(ago(4 * 86400 * 1000), now), '4 days ago');
   assert.equal(relativeTime(undefined, now), '');
 });
+
+test('portSlack lets flat sides slide but keeps tips and round ends fixed', async () => {
+  const { portSlack } = await import('../public/js/model.js');
+  assert.equal(portSlack({ type: 'process', w: 160, h: 64 }, 'left'), 20);
+  assert.equal(portSlack({ type: 'process', w: 160, h: 64 }, 'top'), 68);
+  assert.equal(portSlack({ type: 'decision', w: 160, h: 100 }, 'right'), 0);
+  assert.equal(portSlack({ type: 'terminal', w: 140, h: 52 }, 'right'), 0);
+  assert.equal(portSlack({ type: 'terminal', w: 140, h: 52 }, 'top'), 44);
+});

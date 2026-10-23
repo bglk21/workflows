@@ -21,6 +21,20 @@ export function labelFontSize(node) {
   return Math.round(LABEL_FONT_SIZE[node.type] * clamped * 10) / 10;
 }
 
+/**
+ * How far a connector may attach away from a side's midpoint and still touch
+ * the outline: flat sides keep clear of the rounded corners, pointed or round
+ * ends (decision tips, start/end caps) only at the midpoint.
+ */
+export function portSlack(node, side) {
+  const horizontal = side === 'left' || side === 'right';
+  if (node.type === 'decision') return 0;
+  if (node.type === 'terminal' && horizontal) return 0;
+  const length = horizontal ? node.h : node.w;
+  const corner = node.type === 'terminal' ? node.h / 2 : 12;
+  return Math.max(0, length / 2 - corner);
+}
+
 const COLOR_PATTERN = /^#[0-9a-f]{3,8}$/i;
 const DEFAULT_EDGE_COLOR = '#94a3b8';
 

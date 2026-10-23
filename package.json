@@ -1,6 +1,6 @@
 {
   "name": "workflows",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A simple web-based workflow editor with decisions, labels, colors, free text and auto-routed connectors.",
   "license": "GPL-3.0-or-later",
   "author": "bglk21",

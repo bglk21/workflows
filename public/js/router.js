@@ -234,14 +234,68 @@ export function simplify(points) {
   return out;
 }
 
+const OPPOSITE = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' };
+
+function overlapsInterior(r, minX, minY, maxX, maxY) {
+  return maxX > r.x && minX < r.x + r.w && maxY > r.y && minY < r.y + r.h;
+}
+
+const sameRect = (a, b) => a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h;
+
+/**
+ * A straight line between two blocks that face each other, if one fits.
+ * Each end may slide up to `slack` px from its side's midpoint, so blocks of
+ * different heights (or widths) still get a straight connector.
+ */
+function straightRoute(source, target, obstacles) {
+  if (OPPOSITE[source.side] !== target.side) return null;
+  const s = source.rect;
+  const t = target.rect;
+  const horizontal = source.side === 'left' || source.side === 'right';
+  const p1 = portPoint(s, source.side);
+  const p2 = portPoint(t, target.side);
+
+  // The target must lie in front of the source side.
+  const ahead = { right: p2.x > p1.x, left: p2.x < p1.x, bottom: p2.y > p1.y, top: p2.y < p1.y }[source.side];
+  if (!ahead) return null;
+
+  const axis = horizontal ? 'y' : 'x';
+  const lo = Math.max(p1[axis] - (source.slack ?? 0), p2[axis] - (target.slack ?? 0));
+  const hi = Math.min(p1[axis] + (source.slack ?? 0), p2[axis] + (target.slack ?? 0));
+  if (lo > hi) return null;
+
+  // Prefer keeping an end on its midpoint; otherwise meet halfway.
+  const inRange = (v) => v >= lo && v <= hi;
+  let c = (p1[axis] + p2[axis]) / 2;
+  if (inRange(p2[axis])) c = p2[axis];
+  if (inRange(p1[axis])) c = p1[axis];
+  c = Math.min(hi, Math.max(lo, c));
+
+  const a = horizontal ? { x: p1.x, y: c } : { x: c, y: p1.y };
+  const b = horizontal ? { x: p2.x, y: c } : { x: c, y: p2.y };
+  const minX = Math.min(a.x, b.x);
+  const maxX = Math.max(a.x, b.x);
+  const minY = Math.min(a.y, b.y);
+  const maxY = Math.max(a.y, b.y);
+  for (const r of obstacles) {
+    if (sameRect(r, s) || sameRect(r, t)) continue;
+    if (overlapsInterior(r, minX, minY, maxX, maxY)) return null;
+  }
+  return [a, b];
+}
+
 /**
  * Route an orthogonal connector from one block side to another.
- * @param {{rect: {x,y,w,h}, side: string}} source
- * @param {{rect: {x,y,w,h}, side: string}} target
+ * @param {{rect: {x,y,w,h}, side: string, slack?: number}} source
+ * @param {{rect: {x,y,w,h}, side: string, slack?: number}} target
+ *   `slack`: how far (px) the end may slide along its side to allow a straight line.
  * @param {Array<{x,y,w,h}>} obstacles Every block, including source and target.
  * @returns {Array<{x,y}>} Polyline points from source port to target port.
  */
 export function routeEdge(source, target, obstacles, margin = ROUTE_MARGIN) {
+  const straight = straightRoute(source, target, obstacles);
+  if (straight) return straight;
+
   const startDir = SIDE_INDEX[source.side];
   const endDir = SIDE_INDEX[target.side];
   const p1 = portPoint(source.rect, source.side);
