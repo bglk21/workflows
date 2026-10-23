@@ -61,3 +61,34 @@ test('routing 50 blocks stays fast', () => {
   assert.ok(ms < 2000, `took ${ms}ms`);
   console.log(`49 routes over 50 blocks: ${ms.toFixed(1)}ms`);
 });
+
+test('blocks of different heights facing each other get a straight line', () => {
+  const start = { x: 40, y: 110, w: 140, h: 52 }; // centre y 136
+  const step = { x: 300, y: 110, w: 160, h: 64 }; // centre y 142
+  const points = routeEdge({ rect: start, side: 'right', slack: 0 }, { rect: step, side: 'left', slack: 20 }, [start, step]);
+  assert.deepEqual(points, [{ x: 180, y: 136 }, { x: 300, y: 136 }]);
+});
+
+test('the end with no slack keeps its midpoint, the other slides', () => {
+  const step = { x: 0, y: 110, w: 160, h: 64 }; // centre y 142
+  const decision = { x: 300, y: 100, w: 160, h: 100 }; // centre y 150, tip must stay
+  const points = routeEdge({ rect: step, side: 'right', slack: 20 }, { rect: decision, side: 'left', slack: 0 }, [step, decision]);
+  assert.deepEqual(points, [{ x: 160, y: 150 }, { x: 300, y: 150 }]);
+});
+
+test('no straight line when the offset is larger than the slack', () => {
+  const a = { x: 0, y: 0, w: 100, h: 50 };
+  const b = { x: 300, y: 60, w: 100, h: 50 };
+  const points = routeEdge({ rect: a, side: 'right', slack: 5 }, { rect: b, side: 'left', slack: 5 }, [a, b]);
+  assert.ok(points.length > 2);
+});
+
+test('no straight line through a block in between', () => {
+  const a = { x: 0, y: 0, w: 100, h: 50 };
+  const blocker = { x: 180, y: 0, w: 40, h: 50 };
+  const b = { x: 300, y: 4, w: 100, h: 50 };
+  const points = routeEdge({ rect: a, side: 'right', slack: 13 }, { rect: b, side: 'left', slack: 13 }, [a, blocker, b]);
+  for (let i = 1; i < points.length; i++) {
+    assert.ok(!crossesInterior(points[i - 1], points[i], blocker), `segment ${i} crosses blocker`);
+  }
+});

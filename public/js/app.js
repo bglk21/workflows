@@ -3,8 +3,8 @@ import * as api from './api.js';
 import { VERSION } from './version.js';
 import { renderPng } from './export-png.js';
 import {
-  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, labelFontSize, normalizeDoc, relativeTime,
-  sampleWorkflow, uid,
+  COLORS, NODE_TYPES, createEdge, createNode, defaultEdgeLabel, emptyWorkflow, labelFontSize, normalizeDoc, portSlack,
+  relativeTime, sampleWorkflow, uid,
 } from './model.js';
 
 const GRID = 10;
@@ -205,11 +205,13 @@ function blockRects() {
   return state.doc.nodes.filter(isBlock).map((n) => ({ x: n.x, y: n.y, w: n.w, h: n.h }));
 }
 
+const routeEnd = (node, side) => ({ rect: node, side, slack: portSlack(node, side) });
+
 function edgePoints(edge, obstacles) {
   const a = findNode(edge.from.node);
   const b = findNode(edge.to.node);
   if (!a || !b) return null;
-  return routeEdge({ rect: a, side: edge.from.side }, { rect: b, side: edge.to.side }, obstacles);
+  return routeEdge(routeEnd(a, edge.from.side), routeEnd(b, edge.to.side), obstacles);
 }
 
 function roundedPath(points, radius = 10) {
@@ -365,7 +367,7 @@ function renderOverlay() {
     return;
   }
   const side = nearestSide(target, drag.point);
-  const points = routeEdge({ rect: source, side: drag.side }, { rect: target, side }, blockRects());
+  const points = routeEdge(routeEnd(source, drag.side), routeEnd(target, side), blockRects());
   const p = portPoint(target, side);
   overlayEl.innerHTML = `<rect class="connect-target" x="${target.x - 4}" y="${target.y - 4}" width="${target.w + 8}" height="${target.h + 8}" rx="14"></rect>
     <path class="connect-preview routed" d="${roundedPath(points)}"></path>

@@ -81,6 +81,9 @@ npm version minor --no-git-tag-version   # bump version; also regenerates public
 - The help panel shows on the first visit, can be dismissed (remembered per browser) and reopens with `?`.
   It ends with a link to the repository, the version, the copyright and license, and a security link.
 - Block text scales with block size. Ctrl (or Cmd) while resizing keeps the proportions.
+- Connectors between blocks that face each other are drawn straight when nothing is in between:
+  an end may slide along a flat side (`portSlack` in `model.js`), but decision tips and the
+  round ends of Start / End blocks stay fixed.
 - Phones (≤ 760 px):
   - two-row top bar, with the side panel and menus as bottom sheets,
   - pinch to zoom,
